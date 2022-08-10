@@ -125,7 +125,7 @@ public class NewPlayer : MonoBehaviour
         Vdirection = dir.y;
         // Animation
         Anim.SetFloat("Speed", Mathf.Abs(Hdirection)); // Remember for walking
-        Anim.SetBool("Movement", true);
+        Anim.SetBool("Movement", Hdirection != 0f);
 
         if(RB.velocity.y < 0)
             // Multiplying Gravity when falling
@@ -146,6 +146,7 @@ public class NewPlayer : MonoBehaviour
         Anim.SetFloat("Speed", 0f);
         Anim.SetBool("Movement", false);
         Hdirection = 0f;
+        Vdirection = 0f;
     }
 
     void Jump()
@@ -158,7 +159,7 @@ public class NewPlayer : MonoBehaviour
             if (onGround)
             {
                 // Animation
-                Anim.SetBool("DoubleJumpped", false);
+                Anim.SetTrigger("Jump");
                 // Ordinary Jump
                 RB.velocity = new Vector2(RB.velocity.x, 0);
                 RB.velocity += Vector2.up * jumpForce;
@@ -166,7 +167,7 @@ public class NewPlayer : MonoBehaviour
             } else if (jumpCount > 0)
             {
                 // Animation
-                Anim.SetBool("DoubleJumpped", true);
+                Anim.SetTrigger("DoubleJump");
                 RB.velocity = new Vector2(RB.velocity.x, 0);
                 RB.velocity += Vector2.up * jumpForce;
                 jumpCount--;

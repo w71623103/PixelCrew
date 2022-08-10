@@ -10,6 +10,7 @@ public class NewPlayer : MonoBehaviour
 
     [Header("Position Info")]
     public LayerMask ground;
+    public LayerMask platform;
     public Transform groundCheck;
     [SerializeField] private bool onGround;
 
@@ -17,6 +18,7 @@ public class NewPlayer : MonoBehaviour
     [SerializeField] private float runSpeed = 5f;
     [SerializeField] private float Speed = 5f;
     [SerializeField] private float Hdirection;
+    [SerializeField] private float Vdirection;
     [SerializeField] private Vector2 MoveVector;
     private bool faceRight = true;
     private bool faceNow;
@@ -24,7 +26,13 @@ public class NewPlayer : MonoBehaviour
     [Header("Jump")]
     [SerializeField] private float jumpForce = 10f;
     [SerializeField] private int jumpCount;
+    [SerializeField] private int maxJumpCount = 2;
     public float fallMultiplier = 3f;//Scale of gravity when falling
+
+    [Header("Platform")]
+    [SerializeField] private float fallTime;
+    private int normalLayer = 11;
+    private int fallLayer = 12;
 
     [Header("Stealth")]
     [SerializeField] private float stealthSpeed = 2f;
@@ -70,7 +78,7 @@ public class NewPlayer : MonoBehaviour
     void Update()
     {
         // Position Maintainance
-        onGround = Physics2D.OverlapCircle(groundCheck.position, .05f, ground);
+        onGround = Physics2D.OverlapCircle(groundCheck.position, .05f, ground) || Physics2D.OverlapCircle(groundCheck.position, .05f, platform);
         canStealth = Physics2D.OverlapCircle(StealthCheck.position, .05f, StealthArea);
         // Animation
         Anim.SetFloat("SpeedY", RB.velocity.y);
@@ -83,7 +91,7 @@ public class NewPlayer : MonoBehaviour
             if (Mathf.Abs(RB.velocity.y) < 0.1f)
                 Anim.SetBool("Falling", false);
             // Setting value
-            jumpCount = 2;
+            jumpCount = maxJumpCount;
             
         }
 
@@ -95,7 +103,7 @@ public class NewPlayer : MonoBehaviour
                 Anim.SetBool("Falling", true);
             }
 
-            if (jumpCount == 2)
+            if (jumpCount == maxJumpCount)
                 jumpCount -= 1;
         }
 
@@ -114,6 +122,7 @@ public class NewPlayer : MonoBehaviour
     void Move(Vector2 dir)
     {
         Hdirection = dir.x;
+        Vdirection = dir.y;
         // Animation
         Anim.SetFloat("Speed", Mathf.Abs(Hdirection)); // Remember for walking
         Anim.SetBool("Movement", true);
@@ -141,24 +150,35 @@ public class NewPlayer : MonoBehaviour
 
     void Jump()
     {
-        if (onGround)
+        if(Vdirection < 0f)
         {
-            // Animation
-            Anim.SetBool("DoubleJumpped", false);
-            // Ordinary Jump
-            RB.velocity = new Vector2(RB.velocity.x, 0);
-            RB.velocity += Vector2.up * jumpForce;
-            jumpCount--;
-        }else if (jumpCount > 0)
-        {
-            // Animation
-            Anim.SetBool("DoubleJumpped", true);
-            RB.velocity = new Vector2(RB.velocity.x, 0);
-            RB.velocity += Vector2.up * jumpForce;
-            jumpCount--;
+            StartCoroutine(fallPlatform());
+        }
+        else {
+            if (onGround)
+            {
+                // Animation
+                Anim.SetBool("DoubleJumpped", false);
+                // Ordinary Jump
+                RB.velocity = new Vector2(RB.velocity.x, 0);
+                RB.velocity += Vector2.up * jumpForce;
+                jumpCount--;
+            } else if (jumpCount > 0)
+            {
+                // Animation
+                Anim.SetBool("DoubleJumpped", true);
+                RB.velocity = new Vector2(RB.velocity.x, 0);
+                RB.velocity += Vector2.up * jumpForce;
+                jumpCount--;
+            }
         }
     }
-
+    IEnumerator fallPlatform()
+    {
+        gameObject.layer = fallLayer;
+        yield return new WaitForSecondsRealtime(fallTime);
+        gameObject.layer = normalLayer;
+    }
 
     void toDash()
     {

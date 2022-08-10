@@ -14,11 +14,11 @@ TagManager:
   - UI
   - Ground
   - grabableWall
-  - Wall
+  - Platform
   - StealthArea
-  - 
-  - 
-  - 
+  - Player
+  - PlayerCol
+  - PlayerFall
   - 
   - 
   - 

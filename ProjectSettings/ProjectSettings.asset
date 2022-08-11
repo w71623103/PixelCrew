@@ -638,7 +638,9 @@ PlayerSettings:
   webGLLinkerTarget: 1
   webGLThreadsSupport: 0
   webGLDecompressionFallback: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Android: USE_PHYSICS2D;USE_NEW_INPUT;TMP_PRESENT;USE_CINEMACHINE
+    Standalone: MOREMOUNTAINS_NICEVIBRATIONS_INSTALLED;USE_PHYSICS2D;USE_NEW_INPUT;TMP_PRESENT;USE_CINEMACHINE
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

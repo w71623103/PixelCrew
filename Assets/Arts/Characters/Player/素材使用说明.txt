@@ -1,0 +1,6 @@
+0-5：Idle
+6-7：Run Start
+8-15：Run
+16-18：Run End
+19-23：Jump
+24-31：Walk

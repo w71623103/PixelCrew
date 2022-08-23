@@ -47,6 +47,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private bool orphansFoldout = false;
         private Dictionary<int, string> dialogueEntryText = new Dictionary<int, string>();
         private Dictionary<int, string> dialogueEntryNodeText = new Dictionary<int, string>();
+        private Dictionary<int, GUIContent> dialogueEntryNodeDescription = new Dictionary<int, GUIContent>();
+        private Dictionary<int, bool> dialogueEntryNodeHasSequence = new Dictionary<int, bool>();
         private Dictionary<int, bool> dialogueEntryFoldouts = new Dictionary<int, bool>();
         private Dictionary<int, bool> dialogueEntryHasEvent = new Dictionary<int, bool>();
         private DialogueNode dialogueTree = null;
@@ -122,7 +124,9 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         {
             dialogueEntryText.Clear();
             dialogueEntryNodeText.Clear();
+            dialogueEntryNodeDescription.Clear();
             dialogueEntryHasEvent.Clear();
+            dialogueEntryNodeHasSequence.Clear();
         }
 
         public void ResetDialogueEntryText(DialogueEntry entry)
@@ -294,7 +298,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             return ((database != null) && (entry != null) && database.IsPlayerID(entry.ActorID)) ? pcLinkButtonGUIStyle : npcLinkButtonGUIStyle;
         }
 
-        private string GetDialogueEntryText(DialogueEntry entry)
+    private string GetDialogueEntryText(DialogueEntry entry)
         {
             if (entry == null) return string.Empty;
             if (!dialogueEntryText.ContainsKey(entry.id) || (dialogueEntryText[entry.id] == null))
@@ -324,11 +328,15 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private string GetDialogueEntryNodeText(DialogueEntry entry)
         {
-            if (!dialogueEntryNodeText.ContainsKey(entry.id) || (dialogueEntryNodeText[entry.id] == null))
+            if (entry == null) return string.Empty;
+            string text;
+            if (!dialogueEntryNodeText.TryGetValue(entry.id, out text) || text == null)
             {
-                dialogueEntryNodeText[entry.id] = BuildDialogueEntryNodeText(entry);
+                text = BuildDialogueEntryNodeText(entry);
+                if (text == null) text = string.Empty;
+                dialogueEntryNodeText[entry.id] = text;
             }
-            return dialogueEntryNodeText[entry.id];
+            return text;
         }
 
         private string BuildDialogueEntryNodeText(DialogueEntry entry)
@@ -368,13 +376,48 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             return text.Substring(0, Mathf.Min(text.Length, canvasRectWidthMultiplier * MaxNodeTextLength + extraLength));
         }
 
+        private GUIContent GetDialogueEntryNodeDescription(DialogueEntry entry)
+        {
+            if (entry == null) return null;
+            GUIContent description;
+            if (!dialogueEntryNodeDescription.TryGetValue(entry.id, out description) || description == null)
+            {
+                var descriptionText = Field.LookupValue(entry.fields, "Description");
+                if (descriptionText == null) descriptionText = string.Empty;
+                dialogueEntryNodeDescription[entry.id] = !string.IsNullOrEmpty(descriptionText) ? new GUIContent(descriptionText) : null;
+            }
+            return description;
+        }
+
+        private void ResetDialogueEntryNodeDescription(DialogueEntry entry)
+        {
+            dialogueEntryNodeDescription[entry.id] = null;
+        }
+
+        private bool DoesDialogueEntryHaveSequence(DialogueEntry entry)
+        {
+            if (entry == null) return false;
+            bool value;
+            if (!dialogueEntryNodeHasSequence.TryGetValue(entry.id, out value))
+            {
+                var sequence = entry.Sequence;
+                value = !string.IsNullOrEmpty(sequence) && 
+                    !(entry.id == 0 && (sequence == "None()" || sequence == "Continue()"));
+                dialogueEntryNodeHasSequence[entry.id] = value;
+            }
+            return value;
+        }
+
         private bool DoesDialogueEntryHaveEvent(DialogueEntry entry)
         {
-            if (!dialogueEntryHasEvent.ContainsKey(entry.id))
+            if (entry == null) return false;
+            bool value;
+            if (!dialogueEntryHasEvent.TryGetValue(entry.id, out value))
             {
-                dialogueEntryHasEvent[entry.id] = FullCheckDoesDialogueEntryHaveEvent(entry);
+                value = FullCheckDoesDialogueEntryHaveEvent(entry);
+                dialogueEntryHasEvent[entry.id] = value;
             }
-            return dialogueEntryHasEvent[entry.id];
+            return value;
         }
 
         private bool FullCheckDoesDialogueEntryHaveEvent(DialogueEntry entry)
@@ -596,7 +639,12 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             if (description != null)
             {
                 EditorGUILayout.LabelField(new GUIContent("Description", "Description of this entry; notes for the author"));
+                EditorGUI.BeginChangeCheck();
                 description.value = EditorGUILayout.TextArea(description.value);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    ResetDialogueEntryNodeDescription(entry);
+                }
             }
 
             // Actor & conversant:

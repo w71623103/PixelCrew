@@ -74,7 +74,7 @@ namespace PixelCrushers
             set { m_messagesToSend = value; }
         }
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             for (int i = 0; i < messagesToListenFor.Length; i++)
             {
@@ -83,7 +83,7 @@ namespace PixelCrushers
             }
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             for (int i = 0; i < messagesToListenFor.Length; i++)
             {
@@ -92,7 +92,7 @@ namespace PixelCrushers
             }
         }
 
-        public void OnMessage(MessageArgs messageArgs)
+        public virtual void OnMessage(MessageArgs messageArgs)
         {
             for (int i = 0; i < messagesToListenFor.Length; i++)
             {
@@ -107,7 +107,7 @@ namespace PixelCrushers
             }
         }
 
-        private bool IsParticipantOk(GameObject requiredParticipant, object actualParticipant)
+        protected virtual bool IsParticipantOk(GameObject requiredParticipant, object actualParticipant)
         {
             if (requiredParticipant == null) return true;
             if (actualParticipant == null) return false;
@@ -118,7 +118,7 @@ namespace PixelCrushers
                 (actualParticipant.GetType() == typeof(StringField) && StringField.GetStringValue(actualParticipant as StringField) == requiredParticipant.name);
         }
 
-        public void SendToMessageSystem(int index)
+        public virtual void SendToMessageSystem(int index)
         {
             if (messagesToSend == null) return;
             if (!(0 <= index && index < messagesToSend.Length)) return;

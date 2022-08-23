@@ -14,7 +14,7 @@ namespace PixelCrushers
 
         protected virtual void OnEnable()
         {
-            m_saversOnGameObject = (target as Saver).GetComponents<Saver>();
+            m_saversOnGameObject = (target is Saver) ? (target as Saver).GetComponents<Saver>() : null;
         }
 
         public override void OnInspectorGUI()

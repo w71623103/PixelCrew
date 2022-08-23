@@ -8,19 +8,17 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
 
     /// <summary>
     /// Implements sequencer command: WaitForMessage(message), which waits
-    /// until it receives OnSequencerMessage(message).
-    /// 
-    /// - Note: 
+    /// until it receives OnSequencerMessage(message) for all specified messages.
     /// </summary>
     [AddComponentMenu("")] // Hide from menu.
     public class SequencerCommandWaitForMessage : SequencerCommand
     {
 
-        private List<string> requiredMessages;
+        private List<string> requiredMessages = new List<string>();
 
-        public void Start()
+        public void Awake()
         {
-            requiredMessages = new List<string>(parameters);
+            requiredMessages.AddRange(parameters);
             if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: WaitForMessage({1})", new System.Object[] { DialogueDebug.Prefix, GetParameters() }));
             requiredMessages.RemoveAll(x => string.IsNullOrEmpty(x));
             if (requiredMessages.Count == 0) Stop();

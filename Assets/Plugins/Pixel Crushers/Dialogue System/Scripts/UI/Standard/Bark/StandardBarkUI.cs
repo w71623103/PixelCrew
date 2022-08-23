@@ -233,11 +233,22 @@ namespace PixelCrushers.DialogueSystem
 
         public virtual void OnBarkEnd(Transform actor)
         {
-            if (waitUntilSequenceEnds && !waitForContinueButton)
+            if (waitUntilSequenceEnds && !waitForContinueButton && IsActorMe(actor))
             {
                 numSequencesActive--;
                 if (numSequencesActive <= 0) Hide();
             }
+        }
+
+        protected virtual bool IsActorMe(Transform actor)
+        {
+            var t = transform;
+            while (t != null)
+            {
+                if (t == actor) return true;
+                t = t.parent;
+            }
+            return false;
         }
 
         public virtual void OnContinue()

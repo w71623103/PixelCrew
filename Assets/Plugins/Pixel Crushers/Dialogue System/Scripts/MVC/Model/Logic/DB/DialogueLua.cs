@@ -1114,6 +1114,20 @@ namespace PixelCrushers.DialogueSystem
         }
 
         /// <summary>
+        /// Returns a list of all runtime variable names.
+        /// </summary>
+        public static string[] GetAllVariables()
+        {
+            var list = new List<string>();
+            var variableTable = Lua.Run("return Variable").asTable;
+            if (variableTable != null)
+            {
+                list.AddRange(variableTable.keys);
+            }
+            return list.ToArray();
+        }
+
+        /// <summary>
         /// Checks if a variable exists in the Lua Variable table.
         /// </summary>
         /// <returns><c>true</c> if the variable exists, <c>false</c> otherwise.</returns>

@@ -455,7 +455,7 @@ namespace PixelCrushers.DialogueSystem
                 for (int i = 0; i < numLastHits; i++)
                 {
                     var hit = lastHits[i];
-                    float hitDistance = (distanceFrom == DistanceFrom.Camera) ? 0
+                    float hitDistance = (distanceFrom == DistanceFrom.Camera) ? hit.distance
                         : (distanceFrom == DistanceFrom.GameObject || actorTransform == null)
                             ? Vector3.Distance(gameObject.transform.position, hit.collider.transform.position)
                             : Vector3.Distance(actorTransform.position, hit.collider.transform.position);
@@ -490,7 +490,7 @@ namespace PixelCrushers.DialogueSystem
                 RaycastHit hit;
                 if (Physics.Raycast(ray, out hit, maxSelectionDistance, layerMask))
                 {
-                    distance = (distanceFrom == DistanceFrom.Camera) ? 0
+                    distance = (distanceFrom == DistanceFrom.Camera) ? hit.distance
                         : (distanceFrom == DistanceFrom.GameObject || actorTransform == null)
                             ? Vector3.Distance(gameObject.transform.position, hit.collider.transform.position)
                             : Vector3.Distance(actorTransform.position, hit.collider.transform.position);

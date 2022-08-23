@@ -760,7 +760,7 @@ namespace PixelCrushers.DialogueSystem
         //===================================================================================
 
 
-        public string Draw(Rect position, GUIContent guiContent, string luaCode)
+        public string Draw(Rect position, GUIContent guiContent, string luaCode, bool flexibleHeight = false)
         {
             if (database == null) isOpen = false;
 
@@ -768,10 +768,13 @@ namespace PixelCrushers.DialogueSystem
             var rect = new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight);
             EditorGUI.LabelField(rect, guiContent);
 
+            var luaFieldWidth = rect.width - 16f;
+            var textAreaHeight = flexibleHeight ? (EditorTools.textAreaGuiStyle.CalcHeight(new GUIContent(luaCode), luaFieldWidth) + 2f) : EditorGUIUtility.singleLineHeight;
+
             if (isOpen)
             {
                 // Lua wizard content:
-                rect = new Rect(position.x + 16, position.y + EditorGUIUtility.singleLineHeight + 2f, position.width - 16, position.height - (2 * (EditorGUIUtility.singleLineHeight + 2f)));
+                rect = new Rect(position.x + 16, position.y + EditorGUIUtility.singleLineHeight + 2f, position.width - 16, position.height - (2 * (EditorGUIUtility.singleLineHeight + 2f)) - textAreaHeight + EditorGUIUtility.singleLineHeight);
                 EditorGUI.BeginDisabledGroup(true);
                 GUI.Button(rect, GUIContent.none);
                 EditorGUI.EndDisabledGroup();
@@ -779,8 +782,16 @@ namespace PixelCrushers.DialogueSystem
                 luaCode = DrawConditionsWizard(new Rect(rect.x + 2, rect.y + 2, rect.width - 4, rect.height - 4), luaCode);
             }
 
-            rect = new Rect(position.x, position.y + position.height - EditorGUIUtility.singleLineHeight, position.width, EditorGUIUtility.singleLineHeight);
-            luaCode = EditorGUI.TextField(rect, luaCode);
+            if (flexibleHeight)
+            {
+                rect = new Rect(position.x, position.y + position.height - textAreaHeight, position.width, textAreaHeight);
+                luaCode = EditorGUI.TextArea(rect, luaCode, EditorTools.textAreaGuiStyle);
+            }
+            else
+            {
+                rect = new Rect(position.x, position.y + position.height - EditorGUIUtility.singleLineHeight, position.width, EditorGUIUtility.singleLineHeight);
+                luaCode = EditorGUI.TextField(rect, luaCode);
+            }
 
             return luaCode;
         }

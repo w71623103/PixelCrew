@@ -10,7 +10,7 @@ using System.Linq;
 namespace PixelCrushers.DialogueSystem.ArcweaveSupport
 {
 
-    #region Prefs
+#region Prefs
 
     [Serializable]
     public class ArcweaveConversationInfo
@@ -46,12 +46,12 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
         public string prefsPath;
     }
 
-    #endregion
+#endregion
 
     public class ArcweaveImporterWindow : AbstractConverterWindow<ArcweaveImporterWindowPrefs>
     {
 
-        #region Variables
+#region Variables
 
         public override string prefsKey { get { return "DialogueSystem.ArcweavePrefs"; } }
 
@@ -75,6 +75,7 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
         protected DialogueDatabase database;
         protected int currentPlayerID;
         protected int currentNpcID;
+        protected const string NoneSequence = "None()";
         protected const string ContinueSequence = "Continue()";
 
         // Temporary tree structure for boards so we only show leaf nodes as possible conversations, and can prepend parents to conversation titles.
@@ -96,9 +97,9 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
         protected BoardNode rootBoardNode = null;
         protected Dictionary<string, Board> leafBoards = new Dictionary<string, Board>();
 
-        #endregion
+#endregion
 
-        #region GUI
+#region GUI
 
         [MenuItem("Tools/Pixel Crushers/Dialogue System/Import/Arcweave...", false, 1)]
         public static void Init()
@@ -318,9 +319,9 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
             }
         }
 
-        #endregion
+#endregion
 
-        #region Load JSON
+#region Load JSON
 
         protected bool IsJsonLoaded()
         {
@@ -470,9 +471,9 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
             componentNames = list.ToArray();
         }
 
-        #endregion
+#endregion
 
-        #region Import
+#region Import
 
         protected override void CopySourceToDialogueDatabase(DialogueDatabase database)
         {
@@ -784,14 +785,14 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
 
                     //=======================================================================
 
-                    // Add Connection links:
-                    foreach (var connectionGuid in board.connections)
-                    {
-                        var connection = LookupArcweave<Connection>(connectionGuid);
-                        if (connection == null) continue;
-                        AddLink(connection.sourceid, connectionGuid);
-                        AddLink(connectionGuid, connection.targetid);
-                    }
+                    //--- Handled after adding all elements in all conversations: Add Connection links:
+                    //foreach (var connectionGuid in board.connections)
+                    //{
+                    //    var connection = LookupArcweave<Connection>(connectionGuid);
+                    //    if (connection == null) continue;
+                    //    AddLink(connection.sourceid, connectionGuid);
+                    //    AddLink(connectionGuid, connection.targetid);
+                    //}
 
                     // Add Condition links:
                     foreach (var branchGuid in board.branches)
@@ -818,6 +819,62 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
                     }
                 }
             }
+
+            // Handle connections here to handle cross-conversation links too:
+            foreach (var conversationInfo in prefs.conversationInfo)
+            {
+                Board board;
+                var boardGuid = conversationInfo.boardGuid;
+                if (arcweaveProject.boards.TryGetValue(boardGuid, out board))
+                {
+                    // Add Connection links:
+                    foreach (var connectionGuid in board.connections)
+                    {
+                        var connection = LookupArcweave<Connection>(connectionGuid);
+                        if (connection == null) continue;
+                        var a = AddLink(connection.sourceid, connectionGuid);
+                        var b = AddLink(connectionGuid, connection.targetid);
+                    }
+                }
+            }
+
+            // Note: Jumpers are handled separately to handle cross-conversation jumps.
+
+            SetElementOrderByOutputs();
+        }
+
+        protected void SetElementOrderByOutputs()
+        {
+            foreach (var conversationInfo in prefs.conversationInfo)
+            {
+                Board board;
+                var boardGuid = conversationInfo.boardGuid;
+                if (arcweaveProject.boards.TryGetValue(boardGuid, out board))
+                {
+                    foreach (var elementGuid in board.elements)
+                    {
+                        var element = LookupArcweave<Element>(elementGuid);
+                        var entry = dialogueEntryLookup[elementGuid];
+                        if (element == null || entry == null) continue;
+                        entry.outgoingLinks.Sort((x, y) => CompareOutputsPosition(x, y, element.outputs));
+                    }
+                }
+            }
+        }
+
+        private int CompareOutputsPosition(Link x, Link y, List<string> outputs)
+        {
+            if (outputs == null) return 0;
+            var destinationX = database.GetDialogueEntry(x);
+            var destinationY = database.GetDialogueEntry(y);
+            if (destinationX == null || destinationY == null) return 0;
+            var guidX = dialogueEntryLookup.FirstOrDefault(e => e.Value == destinationX).Key;
+            var guidY = dialogueEntryLookup.FirstOrDefault(e => e.Value == destinationY).Key;
+            if (string.IsNullOrEmpty(guidX) || string.IsNullOrEmpty(guidY)) return 0;
+            var indexX = outputs.IndexOf(guidX);
+            var indexY = outputs.IndexOf(guidY);
+            if (indexX == -1 || indexY == -1 || indexX == indexY) return 0;
+            return (indexX < indexY) ? -1 : 1;
         }
 
         protected string GetConversationTitle(Board conversationBoard)
@@ -904,29 +961,33 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
 
         protected void ConnectJumpers()
         {
-            foreach (var conversation in database.conversations)
+            // Handle jumpers here to handle cross-conversation links too:
+            foreach (var conversationInfo in prefs.conversationInfo)
             {
-                foreach (var entry in conversation.dialogueEntries)
+                Board board;
+                var boardGuid = conversationInfo.boardGuid;
+                if (arcweaveProject.boards.TryGetValue(boardGuid, out board))
                 {
-                    if (entry.Title == null) entry.Title = string.Empty;
-                    var title = entry.Title;
-                    if (title.StartsWith("Jumper."))
+                    foreach (var jumperGuid in board.jumpers)
                     {
-                        var elementId = title.Substring("Jumper.".Length);
-                        entry.Title = "Jumper";
-                        DialogueEntry destinationEntry;
-                        if (dialogueEntryLookup.TryGetValue(elementId, out destinationEntry))
-                        {
-                            entry.outgoingLinks.Add(new Link(conversation.id, entry.id, conversation.id, destinationEntry.id));
-                        }
+                        var jumper = LookupArcweave<Jumper>(jumperGuid);
+                        var jumperEntry = dialogueEntryLookup[jumperGuid];
+                        if (jumper == null || jumperEntry == null) continue;
+                        var destinationEntry = dialogueEntryLookup[jumper.elementId];
+                        if (destinationEntry == null) continue;
+                        var destinationText = destinationEntry.Title;
+                        if (string.IsNullOrEmpty(destinationText)) destinationText = destinationEntry.DialogueText;
+                        jumperEntry.Title = string.IsNullOrEmpty(destinationText) ? "Jumper" : "Jumper: " + Tools.StripRichTextCodes(destinationText.Replace("\n", "").Replace("\r", "").Replace("<p>", "").Replace("</p>", ""));
+                        jumperEntry.outgoingLinks.Clear();
+                        AddLink(jumperGuid, jumper.elementId);
                     }
                 }
             }
         }
 
-        #endregion
+#endregion
 
-        #region Touch Up Database
+#region Touch Up Database
 
         protected override void TouchUpDialogueDatabase(DialogueDatabase database)
         {
@@ -948,7 +1009,10 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
                     entry.DialogueText = TouchUpRichText(entry.DialogueText);
                     if (!string.IsNullOrEmpty(entry.userScript)) entry.userScript = ConvertArcscriptToLua(entry.userScript, true);
                     if (!string.IsNullOrEmpty(entry.conditionsString)) entry.conditionsString = ConvertArcscriptToLua(entry.conditionsString);
-                    if (!entry.isGroup && string.IsNullOrEmpty(entry.DialogueText)) entry.Sequence = ContinueSequence;
+                    if (!entry.isGroup && string.IsNullOrEmpty(entry.DialogueText) && string.IsNullOrEmpty(entry.Sequence))
+                    {
+                        entry.Sequence = (entry.id == 0) ? NoneSequence : ContinueSequence;
+                    }
                 }
             }
         }
@@ -965,13 +1029,13 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
             }
         }
 
-        protected static Regex SequenceRegex = new Regex(@"\[SEQUENCE: [^\]]*\]");
+        protected static Regex SequenceRegex = new Regex(@"\[SEQUENCE:[^\]]*\]");
         protected static Regex BlockRegex = new Regex(@"<p[^>]*>|</p>|<blockquote[^>]*>|</blockquote>|<span[^>]*>|</span>");
         protected static Regex CodeStartRegex = new Regex(@"<pre[^>]*><code>");
         protected static Regex CodeEndRegex = new Regex(@"</code></pre>");
-        protected static Regex ReservedKeywordsRegex = new Regex(@"if|elseif|else|endif|is|not|and|or|true|false|abs|sqr|sqrt|random|reset|resetAll|roll|show");
         protected static Regex IdentifierRegex = new Regex(@"(?<![^\s+!*/-])\w+(?![^\s+*/-])");
         protected static Regex IncrementorRegex = new Regex(@"\+=|\-=");
+        protected static List<string> ReservedKeywords = new List<string>("if|elseif|else|endif|is|not|and|or|true|false|abs|sqr|sqrt|random|reset|resetAll|roll|show".Split('|'));
         protected static string[] CodeFieldPrefixes = new string[] { "_IF", "_ELSEIF", "_ELSE" };
 
         protected enum CodeState { None, InIf, InElseIf, InElse }
@@ -995,7 +1059,7 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
             if (match.Success)
             {
                 if (!string.IsNullOrEmpty(entry.Sequence)) entry.Sequence += ";\n";
-                entry.Sequence = text.Substring(match.Index + "[SEQUENCE: ".Length, match.Length - "[SEQUENCE: ]".Length);
+                entry.Sequence = text.Substring(match.Index + "[SEQUENCE:".Length, match.Length - "[SEQUENCE:]".Length).Trim();
                 entry.DialogueText = text.Remove(match.Index, match.Length);
             }
         }
@@ -1233,7 +1297,7 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
             codeEntry.ConversantID = entry.ConversantID;
             codeEntry.outgoingLinks.Add(new Link(conversation.id, codeEntry.id, conversation.id, postIfEntry.id));
             codeEntry.isGroup = string.IsNullOrEmpty(textField.value);
-            codeEntry.Sequence = ContinueSequence;
+            codeEntry.Sequence = codeEntry.isGroup ? string.Empty : ContinueSequence;
             codeEntry.DialogueText = textField.value;
             codeEntry.conditionsString = ConvertArcscriptToLua(codeField.value);
             if (innerCodeField != null) codeEntry.userScript = ConvertArcscriptToLua(innerCodeField.value, true);
@@ -1276,7 +1340,7 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
             foreach (var match in matches.Cast<Match>().Reverse())
             {
                 var identifier = match.Value;
-                if (ReservedKeywordsRegex.Match(identifier).Success) continue;
+                if (ReservedKeywords.Contains(identifier)) continue;
                 if (database.variables.Find(x => x.Name == identifier) == null) continue;
                 var luaVariable = $"Variable[\"{identifier}\"]";
                 code = Replace(code, match.Index, match.Length, luaVariable);
@@ -1293,7 +1357,7 @@ namespace PixelCrushers.DialogueSystem.ArcweaveSupport
             return builder.ToString();
         }
 
-        #endregion
+#endregion
 
     }
 }

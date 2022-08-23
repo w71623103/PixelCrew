@@ -351,6 +351,14 @@ namespace PixelCrushers.DialogueSystem
                     {
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("questEntryNumber"), true);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("questEntryState"), true);
+
+                        // Additional quest entry state:
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("setAnotherQuestEntryState"), true);
+                        if (serializedObject.FindProperty("setAnotherQuestEntryState").boolValue)
+                        {
+                            EditorGUILayout.PropertyField(serializedObject.FindProperty("anotherQuestEntryNumber"), true);
+                            EditorGUILayout.PropertyField(serializedObject.FindProperty("anotherQuestEntryState"), true);
+                        }
                     }
                 }
                 finally
@@ -568,6 +576,7 @@ namespace PixelCrushers.DialogueSystem
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("exclusive"), true);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("replace"), true);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("skipIfNoValidEntries"), true);
+                        EditorGUILayout.PropertyField(serializedObject.FindProperty("preventRestartOnSameFrameEnded"), true);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("stopConversationOnTriggerExit"), true);
                         EditorGUILayout.PropertyField(serializedObject.FindProperty("stopConversationIfTooFar"), true);
                         if (serializedObject.FindProperty("stopConversationIfTooFar").boolValue)

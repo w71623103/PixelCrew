@@ -220,6 +220,11 @@ namespace PixelCrushers.DialogueSystem
 
         private bool m_isPlaying = false;
 
+        /// <summary>
+        /// 
+        /// </summary>
+        public static bool reportMissingAudioFiles = false;
+
         private static Dictionary<string, System.Type> m_cachedComponentTypes = new Dictionary<string, Type>();
 
         private static Dictionary<string, string> m_shortcuts = new Dictionary<string, string>();
@@ -254,7 +259,7 @@ namespace PixelCrushers.DialogueSystem
 
         /// <summary>
         /// Sends OnSequencerMessage(message) to the Dialogue Manager. Since sequencers are usually on 
-        /// the Dialogue Manager object, this is a convenient way to send a message to a sequencer.
+        /// the Dialogue Manager object, this is a convenient way to send a message to all active sequencers.
         /// You can use this method if your sequence is waiting for a message.
         /// </summary>
         /// <param name="message">Message to send.</param>
@@ -581,7 +586,7 @@ namespace PixelCrushers.DialogueSystem
             {
                 foreach (string message in queuedMessages)
                 {
-                    Sequencer.Message(message);
+                    OnSequencerMessage(message);
                 }
                 queuedMessages.Clear();
                 if ((m_queuedCommands.Count == 0) && (m_activeCommands.Count == 0) && m_delayTimeLeft <= 0)
@@ -922,7 +927,7 @@ namespace PixelCrushers.DialogueSystem
         {
             yield return StartCoroutine(DialogueTime.WaitForSeconds(delay));
             if (m_timedMessageCoroutines.ContainsKey(guid)) m_timedMessageCoroutines.Remove(guid);
-            Sequencer.Message(endMessage);
+            OnSequencerMessage(endMessage);
         }
 
         private void ActivateCommand(QueuedSequencerCommand queuedCommand)
@@ -947,13 +952,11 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        //private List<QueuedSequencerCommand> m_queuedCommandsToDelete = new List<QueuedSequencerCommand>();
-
         public void OnSequencerMessage(string message)
         {
             try
             {
-                if ((m_queuedCommands.Count > 0) && !IsTimePaused() && !string.IsNullOrEmpty(message))
+                if ((m_queuedCommands.Count > 0) && !string.IsNullOrEmpty(message))
                 {
                     // Activate any queued commands that are waiting for the message:
                     var m_queuedCommandsWaitingForMessage = m_queuedCommands.FindAll(x => string.Equals(message, x.messageToWaitFor));
@@ -967,7 +970,6 @@ namespace PixelCrushers.DialogueSystem
                     {
                         m_queuedCommands.Remove(m_queuedCommandsWaitingForMessage[i]);
                     }
-                    // m_queuedCommands.RemoveAll(queuedCommand => (string.Equals(message, queuedCommand.messageToWaitFor)));
                 }
             }
             catch (Exception e)
@@ -998,7 +1000,7 @@ namespace PixelCrushers.DialogueSystem
                     {
                         if (!string.IsNullOrEmpty(command.endMessage))
                         {
-                            //--- Now queued for LateUpdate: Sequencer.Message(command.endMessage);
+                            // Queue for LateUpdate:
                             queuedMessages.Add(command.endMessage);
                         }
                         m_commandsToDelete.Add(command);
@@ -1052,8 +1054,8 @@ namespace PixelCrushers.DialogueSystem
             {
                 if (command != null)
                 {
-                    if (!string.IsNullOrEmpty(command.endMessage)) Sequencer.Message(command.endMessage);
-                    StartCoroutine(DestroyAfterOneFrame(command)); //---Was: Destroy(command); //---Was: Destroy(command, 0.1f);
+                    if (!string.IsNullOrEmpty(command.endMessage)) OnSequencerMessage(command.endMessage);
+                    StartCoroutine(DestroyAfterOneFrame(command));
                 }
             }
             m_activeCommands.Clear();
@@ -1657,7 +1659,7 @@ namespace PixelCrushers.DialogueSystem
                 (asset) =>
                 {
                     var clip = asset as AudioClip;
-                    if ((clip == null) && DialogueDebug.logWarnings) Debug.LogWarning(string.Format("{0}: Sequencer: Audio() command: clip '{1}' could not be found or loaded.", new System.Object[] { DialogueDebug.Prefix, clipName }));
+                    if ((clip == null) && DialogueDebug.logWarnings && reportMissingAudioFiles) Debug.LogWarning(string.Format("{0}: Sequencer: Audio() command: clip '{1}' could not be found or loaded.", new System.Object[] { DialogueDebug.Prefix, clipName }));
 
                     // Play clip:
                     if (clip != null)
@@ -2596,26 +2598,28 @@ namespace PixelCrushers.DialogueSystem
                 var arg = SequencerTools.GetParameter(args, 0);
                 if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: SetContinueMode({1})", new System.Object[] { DialogueDebug.Prefix, arg }));
                 if (DialogueManager.instance == null || DialogueManager.displaySettings == null || DialogueManager.displaySettings.subtitleSettings == null) return true;
-                if (string.Equals(arg, "true", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(arg, "original", StringComparison.OrdinalIgnoreCase))
                 {
-                    savedContinueButtonMode = DialogueManager.displaySettings.subtitleSettings.continueButton;
-                    DialogueManager.displaySettings.subtitleSettings.continueButton = DisplaySettings.SubtitleSettings.ContinueButtonMode.Always;
-                }
-                else if (string.Equals(arg, "false", StringComparison.OrdinalIgnoreCase))
-                {
-                    savedContinueButtonMode = DialogueManager.displaySettings.subtitleSettings.continueButton;
-                    DialogueManager.displaySettings.subtitleSettings.continueButton = DisplaySettings.SubtitleSettings.ContinueButtonMode.Never;
-                }
-                else if (string.Equals(arg, "original", StringComparison.OrdinalIgnoreCase))
-                {
+                    // Restore original mode:
                     if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: SetContinueMode({1}): Restoring original mode {2}", new System.Object[] { DialogueDebug.Prefix, arg, savedContinueButtonMode }));
                     DialogueManager.displaySettings.subtitleSettings.continueButton = savedContinueButtonMode;
                 }
                 else
                 {
-                    if (DialogueDebug.logWarnings) Debug.LogWarning(string.Format("{0}: Sequencer: SetContinueMode(true|false|original) requires a true/false/original parameter", new System.Object[] { DialogueDebug.Prefix }));
-                    return true;
+                    // Set requested mode:
+                    DisplaySettings.SubtitleSettings.ContinueButtonMode mode;
+                    if (TryGetContinueMode(arg, out mode))
+                    {
+                        savedContinueButtonMode = DialogueManager.displaySettings.subtitleSettings.continueButton;
+                        DialogueManager.displaySettings.subtitleSettings.continueButton = mode;
+                    }
+                    else
+                    {
+                        if (DialogueDebug.logWarnings) Debug.LogWarning(string.Format("{0}: Sequencer: SetContinueMode(true|false|original|...) requires a valid mode. See online manual for options.", new System.Object[] { DialogueDebug.Prefix }));
+                        return true;
+                    }
                 }
+                // If a conversation is open, update its continue button mode immediately:
                 if (DialogueManager.conversationView != null)
                 {
                     if (DialogueManager.conversationView.displaySettings.conversationOverrideSettings != null)
@@ -2626,6 +2630,43 @@ namespace PixelCrushers.DialogueSystem
                 }
                 return true;
             }
+        }
+
+        private bool TryGetContinueMode(string arg, out DisplaySettings.SubtitleSettings.ContinueButtonMode mode)
+        {
+            if (string.Equals(arg, "true", StringComparison.OrdinalIgnoreCase) || string.Equals(arg, "always", StringComparison.OrdinalIgnoreCase))
+            {
+                mode = DisplaySettings.SubtitleSettings.ContinueButtonMode.Always;
+            }
+            else if (string.Equals(arg, "false", StringComparison.OrdinalIgnoreCase) || string.Equals(arg, "never", StringComparison.OrdinalIgnoreCase))
+            {
+                mode = DisplaySettings.SubtitleSettings.ContinueButtonMode.Never;
+            }
+            else if (string.Equals(arg, "optional", StringComparison.OrdinalIgnoreCase))
+            {
+                mode = DisplaySettings.SubtitleSettings.ContinueButtonMode.Optional;
+            }
+            else
+            {
+                mode = DisplaySettings.SubtitleSettings.ContinueButtonMode.Never;
+                var found = false;
+                var enumValues = System.Enum.GetValues(typeof(DisplaySettings.SubtitleSettings.ContinueButtonMode));
+                for (int i = 0; i < enumValues.Length; i++)
+                {
+                    var enumMode = (DisplaySettings.SubtitleSettings.ContinueButtonMode)i;
+                    if (string.Equals(arg, enumMode.ToString(), StringComparison.OrdinalIgnoreCase))
+                    {
+                        mode = enumMode;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -2739,6 +2780,7 @@ namespace PixelCrushers.DialogueSystem
             return true;
         }
 
+        // Note: Sends globally.
         private bool HandleSequencerMessageInternally(string commandName, string[] args)
         {
             var message = SequencerTools.GetParameter(args, 0);

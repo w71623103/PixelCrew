@@ -180,6 +180,12 @@ namespace PixelCrushers.DialogueSystem
         public static string lastConversationStarted { get { return hasInstance ? instance.lastConversationStarted : string.Empty; } }
 
         /// <summary>
+        /// Gets the title of the last conversation that ended.
+        /// </summary>
+        /// <value>The title of the last conversation ended.</value>
+        public static string lastConversationEnded { get { return hasInstance ? instance.lastConversationEnded : string.Empty; } }
+
+        /// <summary>
         /// Gets the ID of the last conversation started.
         /// </summary>
         public static int lastConversationID { get { return hasInstance ? instance.lastConversationID : -1; } }
@@ -198,6 +204,15 @@ namespace PixelCrushers.DialogueSystem
         /// Gets the active conversation's ConversationView.
         /// </summary>
         public static ConversationView conversationView { get { return hasInstance ? instance.conversationView : null; } }
+
+        /// <summary>
+        /// If <c>true</c>, Dialogue System Triggers set to OnStart should wait until save data has been applied or variables initialized.
+        /// </summary>
+        public static bool onStartTriggerWaitForSaveDataApplied
+        {
+            get { return hasInstance ? instance.onStartTriggerWaitForSaveDataApplied : false; }
+            set { if (hasInstance) instance.onStartTriggerWaitForSaveDataApplied = value; }
+        }
 
         /// <summary>
         /// Gets or sets the debug level.
@@ -541,6 +556,16 @@ namespace PixelCrushers.DialogueSystem
         }
 
         /// <summary>
+        /// Changes an actor's Display Name.
+        /// </summary>
+        /// <param name="actorName">Actor's Name field.</param>
+        /// <param name="newDisplayName">New Display Name value.</param>
+        public static void ChangeActorName(string actorName, string newDisplayName)
+        {
+            DialogueSystemController.ChangeActorName(actorName, newDisplayName);
+        }
+
+        /// <summary>
         /// Causes a character to bark a line at another character. A bark is a line spoken outside
         /// of a full conversation. It uses a simple gameplay bark UI instead of the dialogue UI.
         /// </summary>
@@ -698,7 +723,7 @@ namespace PixelCrushers.DialogueSystem
         /// <summary>
         /// Gets localized text.
         /// </summary>
-        /// <returns>If the specified field exists in the table, returns the field's 
+        /// <returns>If the specified field exists in the text tables, returns the field's 
         /// localized text for the current language. Otherwise returns the field itself.</returns>
         /// <param name="s">The field to look up.</param>
         public static string GetLocalizedText(string s)

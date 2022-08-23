@@ -247,7 +247,7 @@ namespace PixelCrushers
                 case InputDevice.Mouse:
                     var eventSystem = UnityEngine.EventSystems.EventSystem.current;
                     var currentSelectable = (eventSystem != null && eventSystem.currentSelectedGameObject != null) ? eventSystem.currentSelectedGameObject.GetComponent<UnityEngine.UI.Selectable>() : null;
-                    if (currentSelectable != null) currentSelectable.OnDeselect(null);
+                    if (currentSelectable != null && !autoFocus) currentSelectable.OnDeselect(null);
                     onUseMouse.Invoke();
                     break;
                 case InputDevice.Touch:

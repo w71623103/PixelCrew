@@ -20,7 +20,7 @@ namespace PixelCrushers.DialogueSystem
     public class CeltxConverterWindow : EditorWindow
     {
 
-        [MenuItem("Tools/Pixel Crushers/Dialogue System/Import/Celtx...", false, 1)]
+        [MenuItem("Tools/Pixel Crushers/Dialogue System/Import/Celtx GVR 2...", false, 1)]
         public static void Init()
         {
             CeltxConverterWindow window = EditorWindow.GetWindow(typeof(CeltxConverterWindow), false, "Celtx") as CeltxConverterWindow;
@@ -49,6 +49,7 @@ namespace PixelCrushers.DialogueSystem
             public bool useCeltxFilename = true;
             public bool importGameplayScriptText;
             public bool importBreakdownCatalogContent;
+            public bool sortConversationTitles = false;
             public bool checkSequenceSyntax = true;
             public string databaseName = "Dialogue Database";
             public EncodingType encodingType = EncodingType.Default;
@@ -159,10 +160,13 @@ namespace PixelCrushers.DialogueSystem
             }
             EditorGUILayout.EndHorizontal();
 
+            // Sort Conversation Titles:
+            prefs.sortConversationTitles = EditorGUILayout.Toggle(new GUIContent("Sort Conversations", "Sort conversation by title."), prefs.sortConversationTitles);
+
             // Reset CanvasRects:
             prefs.resetNodePositions = EditorGUILayout.Toggle(new GUIContent("Reset Node Positions", "If all the nodes end up in the upper left corner when importing, tick this to fix it."), prefs.resetNodePositions);
 
-            // Check Sequence syntax:
+            // Check Sequence Syntax:
             prefs.checkSequenceSyntax = EditorGUILayout.Toggle(new GUIContent("Check Sequence Syntax", "Check the syntax of [SEQ] sequencer commands."), prefs.checkSequenceSyntax);
 
             // Save To:
@@ -330,6 +334,7 @@ namespace PixelCrushers.DialogueSystem
                         CeltxToDialogueDatabase celtxProcessor = new CeltxToDialogueDatabase();
                         celtxProcessor.ProcessRawCeltxData(rawCeltxData, database, prefs.importGameplayScriptText, prefs.importBreakdownCatalogContent, prefs.checkSequenceSyntax);
                         database.actors.ForEach(a => FindPortraitTexture(a));
+                        if (prefs.sortConversationTitles) database.conversations.Sort((x, y) => x.Title.CompareTo(y.Title));
                         SaveDatabase(database, databaseAssetName);
                         Debug.Log(string.Format("{0}: Created database '{1}' containing {2} actors, {3} conversations, {4} items (quests), {5} variables, and {6} locations.",
                             DialogueDebug.Prefix, databaseAssetName, database.actors.Count, database.conversations.Count, database.items.Count, database.variables.Count, database.locations.Count));
@@ -350,7 +355,11 @@ namespace PixelCrushers.DialogueSystem
             if (prefs.overwrite)
             {
                 database = AssetDatabase.LoadAssetAtPath(assetPath, typeof(DialogueDatabase)) as DialogueDatabase;
-                if (database != null) database.Clear();
+                if (database != null)
+                {
+                    database.Clear();
+                    database.SyncAll();
+                }
             }
             if (database == null)
             {

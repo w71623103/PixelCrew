@@ -111,7 +111,7 @@ namespace PixelCrushers.DialogueSystem
                 luaCode = DrawScriptWizard(luaCode);
             }
 
-            luaCode = EditorGUILayout.TextArea(luaCode);
+            luaCode = EditorGUILayout.TextArea(luaCode, EditorTools.textAreaGuiStyle);
 
             return luaCode;
         }

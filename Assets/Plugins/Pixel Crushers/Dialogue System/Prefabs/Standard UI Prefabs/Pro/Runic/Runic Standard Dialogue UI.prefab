@@ -306,7 +306,7 @@ MonoBehaviour:
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 11480266}
   m_HorizontalScrollbarVisibility: 0
-  m_VerticalScrollbarVisibility: 0
+  m_VerticalScrollbarVisibility: 1
   m_HorizontalScrollbarSpacing: 0
   m_VerticalScrollbarSpacing: 0
   m_OnValueChanged:
@@ -1203,6 +1203,7 @@ MonoBehaviour:
   addSpeakerName: 1
   addSpeakerNameFormat: '{0}: {1}'
   accumulateText: 1
+  maxLines: 100
   delayTypewriterUntilOpen: 0
   continueButton: {fileID: 11489866}
   blockInputDuration: 0

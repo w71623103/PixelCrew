@@ -395,7 +395,7 @@ namespace PixelCrushers.DialogueSystem
             var panel = GetPanel(subtitle, out dialogueActor);
             if (SubtitleUsesBarkUI(subtitle))
             {
-                DialogueManager.BarkString(subtitle.formattedText.text, subtitle.speakerInfo.transform, subtitle.listenerInfo.transform, subtitle.sequence);
+                DialogueManager.instance.StartCoroutine(BarkController.Bark(subtitle));
             }
             else if (panel == null)
             {
@@ -422,7 +422,7 @@ namespace PixelCrushers.DialogueSystem
 
                 // Focus the panel and show the subtitle:
                 m_focusedPanel = panel;
-                if (panel.addSpeakerName)
+                if (panel.addSpeakerName && !string.IsNullOrEmpty(subtitle.speakerInfo.Name))
                 {
                     subtitle.formattedText.text = string.Format(panel.addSpeakerNameFormat, new object[] { subtitle.speakerInfo.Name, subtitle.formattedText.text });
                 }
@@ -677,7 +677,7 @@ namespace PixelCrushers.DialogueSystem
                 var actorPanel = GetActorTransformPanel(actorTransform, actor.IsPlayer ? m_defaultPCPanel : m_defaultNPCPanel, out dialogueActor);
                 if (m_actorIdOverridePanel.ContainsKey(actor.id))
                 {
-                    panel = m_actorIdOverridePanel[actor.id];
+                    actorPanel = m_actorIdOverridePanel[actor.id];
                 }
                 if (actorPanel == panel)
                 {

@@ -39,6 +39,9 @@ namespace PixelCrushers.DialogueSystem
         [Tooltip("Text element for use message (e.g., 'Press spacebar to use').")]
         public UITextField useMessageText = null;
 
+        [Tooltip("Use In Range and Out Of Range text colors defined below.")]
+        public bool useRangeColors = true;
+
         [Tooltip("Set text elements to this color when selector is in range to use selection.")]
         public Color inRangeColor = Color.yellow;
 

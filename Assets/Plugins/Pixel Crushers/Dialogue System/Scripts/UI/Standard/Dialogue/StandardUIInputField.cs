@@ -60,9 +60,15 @@ namespace PixelCrushers.DialogueSystem
         /// <param name="acceptedText">The delegate to call when accepting text.</param>
         public virtual void StartTextInput(string labelText, string text, int maxLength, AcceptedTextDelegate acceptedText)
         {
-            label.text = labelText;
-            inputField.text = text;
-            inputField.characterLimit = maxLength;
+            if (label != null)
+            {
+                label.text = labelText;
+            }
+            if (inputField != null)
+            {
+                inputField.text = text;
+                inputField.characterLimit = maxLength;
+            }
             m_acceptedText = acceptedText;
             m_isAwaitingInput = true;
             Show();
@@ -113,8 +119,14 @@ namespace PixelCrushers.DialogueSystem
             SetActive(true);
             Open();
             if (showTouchScreenKeyboard) ShowTouchScreenKeyboard();
-            inputField.ActivateInputField();
-            EventSystem.current.SetSelectedGameObject(inputField.gameObject);
+            if (inputField != null)
+            {
+                inputField.ActivateInputField();
+                if (EventSystem.current != null)
+                {
+                    EventSystem.current.SetSelectedGameObject(inputField.gameObject);
+                }
+            }
         }
 
         protected virtual void ShowTouchScreenKeyboard()
@@ -138,8 +150,8 @@ namespace PixelCrushers.DialogueSystem
             if (panel != null) panel.gameObject.SetActive(value);
             if (panel == null || value == true)
             {
-                label.SetActive(value);
-                inputField.SetActive(value);
+                if (label != null) label.SetActive(value);
+                if (inputField != null) inputField.SetActive(value);
             }
         }
 

@@ -203,6 +203,8 @@ namespace PixelCrushers.DialogueSystem
                     EditorGUILayout.PropertyField(localizationSettings.FindPropertyRelative("language"), true);
                     EditorGUILayout.PropertyField(localizationSettings.FindPropertyRelative("useSystemLanguage"), true);
                     EditorGUILayout.PropertyField(localizationSettings.FindPropertyRelative("textTable"), true);
+                    EditorGUILayout.HelpBox("To use more than one Text Table, add a UILocalizationManager component to the Dialogue Manager and assign them there.", MessageType.None);
+                    EditorGUILayout.HelpBox("Play mode not using the language you specified here? Click Reset Language PlayerPrefs.", MessageType.None);
                     if (GUILayout.Button(new GUIContent("Reset Language PlayerPrefs", "Delete the language selection saved in PlayerPrefs.")))
                     {
                         ResetLanguagePlayerPrefs();
@@ -247,6 +249,7 @@ namespace PixelCrushers.DialogueSystem
                     EditorGUILayout.PropertyField(subtitleSettings.FindPropertyRelative("subtitleCharsPerSecond"), true);
                     EditorGUILayout.PropertyField(subtitleSettings.FindPropertyRelative("minSubtitleSeconds"), true);
                     EditorGUILayout.PropertyField(subtitleSettings.FindPropertyRelative("continueButton"), true);
+                    EditorGUILayout.PropertyField(subtitleSettings.FindPropertyRelative("requireContinueOnLastLine"), true);
                     EditorGUILayout.PropertyField(subtitleSettings.FindPropertyRelative("informSequenceStartAndEnd"), true);
                 }
                 finally
@@ -412,6 +415,7 @@ namespace PixelCrushers.DialogueSystem
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("instantiateDatabase"), true);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("includeSimStatus"), true);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("allowSimultaneousConversations"), true);
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("onStartTriggerWaitForSaveDataApplied"), true);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("dialogueTimeMode"), true);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("debugLevel"), true);
                 }

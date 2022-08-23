@@ -96,6 +96,12 @@ namespace PixelCrushers.DialogueSystem
         public bool allowOnlyOneInstance = true;
 
         /// <summary>
+        /// If <c>true</c>, Dialogue System Triggers set to OnStart should wait until save data has been applied or variables initialized.
+        /// </summary>
+        [Tooltip("Dialogue System Triggers set to OnStart should wait until save data has been applied or variables initialized.")]
+        public bool onStartTriggerWaitForSaveDataApplied = false;
+
+        /// <summary>
         /// Time mode to use for conversations.
         /// - Realtime: Independent of Time.timeScale.
         /// - Gameplay: Observe Time.timeScale.
@@ -280,6 +286,8 @@ namespace PixelCrushers.DialogueSystem
         /// <value>The title of the last conversation started.</value>
         public string lastConversationStarted { get; private set; }
 
+        public string lastConversationEnded { get; private set; }
+
         /// <summary>
         /// Gets the ID of the last conversation started.
         /// </summary>
@@ -409,6 +417,7 @@ namespace PixelCrushers.DialogueSystem
                 DialogueDebug.level = debugLevel;
                 m_lastDebugLevelSet = debugLevel;
                 lastConversationStarted = string.Empty;
+                lastConversationEnded = string.Empty;
                 lastConversationID = -1;
                 currentActor = null;
                 currentConversant = null;
@@ -830,7 +839,7 @@ namespace PixelCrushers.DialogueSystem
             {
                 Destroy(canvasGroup);
             }
-            else
+            else if (isWarmingUp)
             {
                 canvasGroup.alpha = previousAlpha;
             }
@@ -914,6 +923,12 @@ namespace PixelCrushers.DialogueSystem
                     if (DialogueDebug.logWarnings) Debug.LogWarning(string.Format("{0}: Actor and conversant are the same GameObject.", new System.Object[] { DialogueDebug.Prefix }));
                 }
                 CheckDebugLevel();
+
+                // Save currentActor, Conversation, Conversation in case we need to back out:
+                var prevActor = currentActor;
+                var prevConversant = currentConversant;
+                var prevLastConversation = lastConversationStarted;
+
                 currentActor = actor;
                 currentConversant = conversant;
                 lastConversationStarted = title;
@@ -931,7 +946,14 @@ namespace PixelCrushers.DialogueSystem
                 var model = new ConversationModel(m_databaseManager.masterDatabase, title, actor, conversant, allowLuaExceptions, isDialogueEntryValid, initialDialogueEntryID);
                 var needToSetRandomizeNextEntryAgain = m_calledRandomizeNextEntry; // Special case when START node leads to group node with RandomizeNextEntry().
                 m_calledRandomizeNextEntry = false;
-                if (!model.hasValidEntry) return;
+                if (!model.hasValidEntry)
+                {
+                    // Back out:
+                    currentActor = prevActor;
+                    currentConversant = prevConversant;
+                    lastConversationStarted = prevLastConversation;
+                    return;
+                }
                 if (model.firstState != null && model.firstState.subtitle != null && model.firstState.subtitle.dialogueEntry != null)
                 {
                     lastConversationID = model.firstState.subtitle.dialogueEntry.conversationID;
@@ -952,6 +974,7 @@ namespace PixelCrushers.DialogueSystem
 
                 // Add an active conversation record to the list:
                 var record = new ActiveConversationRecord();
+                record.conversationTitle = title;
                 record.actor = actor;
                 record.conversant = conversant;
                 record.conversationController = m_conversationController;
@@ -1167,6 +1190,14 @@ namespace PixelCrushers.DialogueSystem
                 ApplyOverrideUI(overrideUI);
             }
             ValidateCurrentDialogueUI();
+
+            // If warmup is Extra and dialogue UI is in a canvas and has a CanvasGroup, make sure alpha is 1:
+            if (isWarmingUp && displaySettings.dialogueUI != null)
+            {
+                isWarmingUp = false;
+                var canvasGroup = displaySettings.dialogueUI.GetComponent<CanvasGroup>();
+                if (canvasGroup != null) canvasGroup.alpha = 1;
+            }
         }
 
         private OverrideUIBase FindHighestPriorityOverrideUI(Transform actor, Transform conversant)
@@ -1294,6 +1325,8 @@ namespace PixelCrushers.DialogueSystem
             var record = m_activeConversations.Find(r => r.conversationController == endingConversationController);
             if (record != null)
             {
+                lastConversationStarted = record.conversationTitle;
+
                 m_activeConversations.Remove(record);
 
                 // Promote a remaining active conversation, or clear out the active conversation properties:
@@ -1606,21 +1639,26 @@ namespace PixelCrushers.DialogueSystem
         /// <summary>
         /// Gets localized text.
         /// </summary>
-        /// <returns>If the specified field exists in the table, returns the field's 
+        /// <returns>If the specified field exists in the text tables, returns the field's 
         /// localized text for the current language. Otherwise returns the field itself.</returns>
         /// <param name="s">The field to look up.</param>
         public string GetLocalizedText(string s)
         {
-            if (displaySettings.localizationSettings.textTable == null)
+            string localizedText;
+            // Try the Dialogue Manager's text table first:
+            var textTable = displaySettings.localizationSettings.textTable;
+            if (textTable != null)
             {
-                return s;
+                var languageID = Localization.GetCurrentLanguageID(textTable);
+                if (textTable.HasFieldTextForLanguage(s, languageID))
+                {
+                    localizedText = textTable.GetFieldTextForLanguage(s, languageID);
+                    if (!string.IsNullOrEmpty(localizedText)) return localizedText;
+                }
             }
-            else
-            {
-                var textTable = displaySettings.localizationSettings.textTable;
-                string localizedText = textTable.GetFieldTextForLanguage(s, Localization.GetCurrentLanguageID(textTable));
-                return string.IsNullOrEmpty(localizedText) ? s : localizedText;
-            }
+            // Failing that, try the UILocalizationManager's text table(s):
+            localizedText = UILocalizationManager.instance.GetLocalizedText(s);
+            return string.IsNullOrEmpty(localizedText) ? s : localizedText;
         }
 
         /// <summary>
@@ -1802,20 +1840,25 @@ namespace PixelCrushers.DialogueSystem
                 if (Tools.IsPrefab(uiBehaviour.gameObject))
                 {
                     // If prefab, instantiate it:
-                    var instanceGO = Instantiate(uiBehaviour.gameObject);
-                    instanceGO.name = uiBehaviour.gameObject.name;
-                    uiBehaviour = instanceGO.GetComponent(typeof(IDialogueUI)) as MonoBehaviour;
+                    GameObject instanceGO;
                     if (uiBehaviour is CanvasDialogueUI && uiBehaviour.GetComponentInChildren<Canvas>() == null)
                     {
                         // If a canvas-based UI that doesn't come with its own canvas, add a canvas:
                         var canvas = GetOrCreateDefaultCanvas();
-                        instanceGO.transform.SetParent(canvas.transform, false);
+                        instanceGO = Instantiate(uiBehaviour.gameObject, canvas.transform, false);
+                        uiBehaviour = instanceGO.GetComponent(typeof(IDialogueUI)) as MonoBehaviour;
                     }
                     else
                     {
-                        // Otherwise make it a direct child of the Dialogue Manager:
-                        instanceGO.transform.SetParent(transform);
+                        instanceGO = Instantiate(uiBehaviour.gameObject, transform);
+                        uiBehaviour = instanceGO.GetComponent(typeof(IDialogueUI)) as MonoBehaviour;
+                        if (uiBehaviour is CanvasDialogueUI && uiBehaviour.GetComponentInChildren<Canvas>() == null)
+                        {
+                            var canvas = GetOrCreateDefaultCanvas();
+                            instanceGO.transform.SetParent(canvas.transform, false);
+                        }
                     }
+                    instanceGO.name = uiBehaviour.gameObject.name;
                 }
 
                 displaySettings.dialogueUI = uiBehaviour.gameObject;
@@ -1967,6 +2010,7 @@ namespace PixelCrushers.DialogueSystem
             Lua.RegisterFunction("GetEntryBool", null, SymbolExtensions.GetMethodInfo(() => GetEntryBool((double)0, string.Empty)));
             Lua.RegisterFunction("GetEntryNumber", null, SymbolExtensions.GetMethodInfo(() => GetEntryNumber((double)0, string.Empty)));
             Lua.RegisterFunction("Conditional", null, SymbolExtensions.GetMethodInfo(() => Conditional(string.Empty, string.Empty)));
+            Lua.RegisterFunction("ChangeActorName", this, SymbolExtensions.GetMethodInfo(() => ChangeActorName(string.Empty, string.Empty)));
             // Register DialogueLua in case they got unregistered:
             DialogueLua.RegisterLuaFunctions();
         }
@@ -1980,6 +2024,8 @@ namespace PixelCrushers.DialogueSystem
             Lua.UnregisterFunction("GetEntryText");
             Lua.UnregisterFunction("GetEntryBool");
             Lua.UnregisterFunction("GetEntryNumber");
+            Lua.UnregisterFunction("Conditional");
+            Lua.UnregisterFunction("ChangeActorName");
         }
 
         public void SendUpdateTracker()
@@ -2031,6 +2077,27 @@ namespace PixelCrushers.DialogueSystem
         {
             return Lua.IsTrue(condition) ? value : string.Empty;
         }
+
+        /// <summary>
+        /// Changes an actor's Display Name.
+        /// </summary>
+        /// <param name="actorName">Actor's Name field.</param>
+        /// <param name="newDisplayName">New Display Name value.</param>
+        public static void ChangeActorName(string actorName, string newDisplayName)
+        {
+            if (DialogueDebug.logInfo) Debug.Log("Dialogue System: Changing " + actorName + "'s Display Name to " + newDisplayName);
+            DialogueLua.SetActorField(actorName, "Display Name", newDisplayName);
+            if (DialogueManager.isConversationActive)
+            {
+                var actor = DialogueManager.MasterDatabase.GetActor(actorName);
+                if (actor != null)
+                {
+                    var info = DialogueManager.ConversationModel.GetCharacterInfo(actor.id);
+                    if (info != null) info.Name = newDisplayName;
+                }
+            }
+        }
+
 
         /// <summary>
         /// Adds a Lua expression observer.
@@ -2265,7 +2332,7 @@ namespace PixelCrushers.DialogueSystem
                 // If we have a result, load it. Otherwise return null;
                 if (loc.Result.Count > 0)
                 {
-                    Addressables.LoadAssetAsync<UnityEngine.Object>(name).Completed += (obj) => LoadCompleted(obj);
+                    Addressables.LoadAssetAsync<UnityEngine.Object>(name).Completed += (obj) => LoadCompleted(name, obj);
                 }
                 else
                 {
@@ -2285,16 +2352,14 @@ namespace PixelCrushers.DialogueSystem
         private HashSet<int> loadedAddressableHashes = new HashSet<int>();
         private List<UnityEngine.Object> loadedAddressables = new List<UnityEngine.Object>();
 
-        private void LoadCompleted(AsyncOperationHandle<UnityEngine.Object> obj)
+        private void LoadCompleted(string name, AsyncOperationHandle<UnityEngine.Object> obj)
         {
-            string name = null;
             UnityEngine.Object result = null;
             if (obj.Result != null)
             {
                 result = obj.Result;
                 loadedAddressables.Add(result);
                 loadedAddressableHashes.Add(result.GetHashCode());
-                name = result.name;
             }
             CallDelegatesForAssetBeingLoaded(name, result);
             RemoveDelegatesForAssetBeingLoaded(name);

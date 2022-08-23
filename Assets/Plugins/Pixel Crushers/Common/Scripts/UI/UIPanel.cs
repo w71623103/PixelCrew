@@ -116,6 +116,16 @@ namespace PixelCrushers
             }
         }
 
+        private Animator m_animator = null;
+        private Animator myAnimator
+        {
+            get
+            { 
+                if (m_animator == null) m_animator = GetComponent<Animator>() ?? GetComponentInChildren<Animator>();
+                return m_animator;
+            }
+        }
+
         protected virtual void Start()
         {
             if (panelState == PanelState.Uninitialized)
@@ -217,6 +227,7 @@ namespace PixelCrushers
             panelState = PanelState.Opening;
             gameObject.SetActive(true);
             onOpen.Invoke();
+            if (myAnimator != null && myAnimator.isInitialized) myAnimator.ResetTrigger(hideAnimationTrigger);
             animatorMonitor.SetTrigger(showAnimationTrigger, OnVisible, waitForShowAnimation);
 
             // With quick panel changes, panel may not reach OnEnable/OnDisable before being reused.
@@ -231,6 +242,7 @@ namespace PixelCrushers
             if (panelState == PanelState.Closed || panelState == PanelState.Closing) return;
             panelState = PanelState.Closing;
             onClose.Invoke();
+            if (myAnimator != null && myAnimator.isInitialized) myAnimator.ResetTrigger(showAnimationTrigger);
             animatorMonitor.SetTrigger(hideAnimationTrigger, OnHidden, true);
 
             // Deselect ours:

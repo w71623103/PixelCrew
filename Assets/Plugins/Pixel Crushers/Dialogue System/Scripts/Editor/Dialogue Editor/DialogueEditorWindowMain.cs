@@ -99,9 +99,12 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         {
             if (debug) Debug.Log("<color=green>Dialogue Editor: OnEnable (Selection.activeObject=" + Selection.activeObject + ", database=" + database + ")</color>", Selection.activeObject);
             instance = this;
-            template = TemplateTools.LoadFromEditorPrefs();
             minSize = new Vector2(MinWidth, MinHeight);
-            if (Selection.activeObject != null)
+            if (database != null)
+            {
+                LoadTemplateFromDatabase();
+            }
+            else if (Selection.activeObject != null)
             {
                 SelectObject(Selection.activeObject);
             }
@@ -120,6 +123,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 #endif
             showQuickDialogueTextEntry = false;
             LoadEditorSettings();
+            if (database == null) template = TemplateTools.LoadFromEditorPrefs();
         }
 
         private void OnDisable()
@@ -130,11 +134,12 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 #else
             EditorApplication.playmodeStateChanged -= OnPlaymodeStateChanged;
 #endif
-            try
-            {
-                EditorApplication.delayCall += AssetDatabase.SaveAssets;
-            }
-            catch (System.NullReferenceException) { } // Some Unity versions w/disabled domain reloading don't allow when entering play mode.
+            //--- No need to save assets after entering play mode? This was a workaround for Asset Database bugs.
+            //try
+            //{
+            //    EditorApplication.delayCall += AssetDatabase.SaveAssets;
+            //}
+            //catch (System.NullReferenceException) { } // Some Unity versions w/disabled domain reloading don't allow when entering play mode.
             SaveTemplate();
             inspectorSelection = null;
             instance = null;
@@ -206,7 +211,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private void HandlePlayModeStateChanged()
         {
             if (debug) Debug.Log("<color=cyan>Dialogue Editor: OnPlaymodeStateChanged - isPlaying=" + EditorApplication.isPlaying + "/" + EditorApplication.isPlayingOrWillChangePlaymode + "</color>");
-            AssetDatabase.SaveAssets();
+            if (!EditorApplication.isPlaying) AssetDatabase.SaveAssets();
             toolbar.UpdateTabNames(template.treatItemsAsQuests);
             currentConversationState = null;
             currentRuntimeEntry = null;

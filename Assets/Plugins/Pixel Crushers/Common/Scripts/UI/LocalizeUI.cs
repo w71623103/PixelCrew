@@ -20,7 +20,7 @@ namespace PixelCrushers
 
         public TextTable textTable
         {
-            get { return (m_textTable != null) ? m_textTable : (UILocalizationManager.instance.textTable != null) ? UILocalizationManager.instance.textTable : GlobalTextTable.textTable; }
+            get { return m_textTable; }// return (m_textTable != null) ? m_textTable : (UILocalizationManager.instance.textTable != null) ? UILocalizationManager.instance.textTable : GlobalTextTable.textTable; }
             set { m_textTable = value; }
         }
 
@@ -88,19 +88,18 @@ namespace PixelCrushers
         public virtual void UpdateText()
         {
             if (!started) return;
-            var textTable = this.textTable;
             var language = (UILocalizationManager.instance != null) ? UILocalizationManager.instance.currentLanguage : string.Empty;
 
             // Skip if no text table or language set:
-            if (textTable == null)
+            if (textTable == null && (UILocalizationManager.instance == null || UILocalizationManager.instance.textTable == null))
             {
                 Debug.LogWarning("No localized text table is assigned to " + name + " or a UI Localized Manager component.", this);
                 return;
             }
 
-            if (!textTable.HasLanguage(language))
+            if (!HasLanguage(language))
             {
-                Debug.LogWarning("Text table " + textTable.name + " does not have a language '" + language + "'.", textTable);
+                Debug.LogWarning("Text table does not have a language '" + language + "'.", textTable);
                 //return; //--- Allow to continue and use default language value.
             }
 
@@ -139,9 +138,9 @@ namespace PixelCrushers
             // Localize Text:
             if (text != null)
             {
-                if (!textTable.HasField(fieldName))
+                if (!HasField(fieldName))
                 {
-                    Debug.LogWarning("Text table " + textTable.name + " does not have a field '" + fieldName + "'.", textTable);
+                    Debug.LogWarning("Text table does not have a field '" + fieldName + "'.", textTable);
                 }
                 else
                 {
@@ -175,9 +174,9 @@ namespace PixelCrushers
                 {
                     fieldName = (textMeshPro != null) ? textMeshPro.text : string.Empty;
                 }
-                if (!textTable.HasField(fieldName))
+                if (!HasField(fieldName))
                 {
-                    Debug.LogWarning("Text table " + textTable.name + " does not have a field '" + fieldName + "'.", textTable);
+                    Debug.LogWarning("Text table does not have a field '" + fieldName + "'.", textTable);
                 }
                 else
                 {
@@ -190,9 +189,9 @@ namespace PixelCrushers
                 {
                     fieldName = (textMeshProUGUI != null) ? textMeshProUGUI.text : string.Empty;
                 }
-                if (!textTable.HasField(fieldName))
+                if (!HasField(fieldName))
                 {
-                    Debug.LogWarning("Text table " + textTable.name + " does not have a field '" + fieldName + "'.", textTable);
+                    Debug.LogWarning("Text table does not have a field '" + fieldName + "'.", textTable);
                 }
                 else
                 {
@@ -203,11 +202,23 @@ namespace PixelCrushers
 
         }
 
+        protected virtual bool HasLanguage(string language)
+        {
+            return (textTable != null && textTable.HasLanguage(language)) ||
+                UILocalizationManager.instance.HasLanguage(language);
+        }
+
+        protected virtual bool HasField(string fieldName)
+        {
+            return (textTable != null && textTable.HasField(fieldName)) ||
+                UILocalizationManager.instance.HasField(fieldName);
+        }
+
         protected virtual string GetLocalizedText(string fieldName)
         {
             return (textTable != null && textTable.HasField(fieldName))
                 ? textTable.GetFieldTextForLanguage(fieldName, GlobalTextTable.currentLanguage)
-                : GlobalTextTable.Lookup(fieldName);
+                : UILocalizationManager.instance.GetLocalizedText(fieldName); //---Was: GlobalTextTable.Lookup(fieldName);
         }
 
         /// <summary>

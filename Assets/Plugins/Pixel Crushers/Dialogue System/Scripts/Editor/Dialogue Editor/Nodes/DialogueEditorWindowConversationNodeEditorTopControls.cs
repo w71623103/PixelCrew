@@ -214,6 +214,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 menu.AddItem(new GUIContent("Show/Show All Actor Names"), showAllActorNames, ToggleShowAllActorNames);
                 menu.AddItem(new GUIContent("Show/Show Non-Primary Actor Names"), showOtherActorNames, ToggleShowOtherActorNames);
                 menu.AddItem(new GUIContent("Show/Show Actor Portraits"), showActorPortraits, ToggleShowActorPortraits);
+                menu.AddItem(new GUIContent("Show/Show Descriptions"), showDescriptions, ToggleShowDescriptions);
                 menu.AddItem(new GUIContent("Show/Show Full Text On Hover"), showFullTextOnHover, ToggleShowFullTextOnHover);
                 menu.AddItem(new GUIContent("Show/Show End Node Markers"), showEndNodeMarkers, ToggleShowEndNodeMarkers);
                 menu.AddItem(new GUIContent("Show/Show Node IDs"), showNodeIDs, ToggleShowNodeIDs);
@@ -259,13 +260,13 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private void ToggleShowAllActorNames()
         {
             showAllActorNames = !showAllActorNames;
-            dialogueEntryNodeText.Clear();
+            ResetDialogueEntryText();
         }
 
         private void ToggleShowOtherActorNames()
         {
             showOtherActorNames = !showOtherActorNames;
-            dialogueEntryNodeText.Clear();
+            ResetDialogueEntryText();
         }
 
         private void ToggleShowParticipantNames()
@@ -276,6 +277,12 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private void ToggleShowActorPortraits()
         {
             showActorPortraits = !showActorPortraits;
+            ClearActorInfoCaches();
+        }
+
+        private void ToggleShowDescriptions()
+        {
+            showDescriptions = !showDescriptions;
             ClearActorInfoCaches();
         }
 

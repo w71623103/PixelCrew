@@ -16,6 +16,7 @@ namespace PixelCrushers.DialogueSystem
         public const string USE_ARTICY = "USE_ARTICY";
         public const string USE_AURORA = "USE_AURORA";
         public const string USE_CELTX = "USE_CELTX";
+        public const string USE_CELTX3 = "USE_CELTX3";
         public const string USE_TWINE = "USE_TWINE";
         public const string USE_YARN = "USE_YARN";
         public const string TMP_PRESENT = "TMP_PRESENT";

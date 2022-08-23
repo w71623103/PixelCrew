@@ -190,7 +190,7 @@ namespace PixelCrushers.DialogueSystem
             Open();
             Focus();
             RefreshSelectablesList();
-            CheckFocus();
+            if (InputDeviceManager.autoFocus) SetFocus(firstSelected);
             if (blockInputDuration > 0)
             {
                 DisableInput();
@@ -458,8 +458,6 @@ namespace PixelCrushers.DialogueSystem
             }
 
             if (explicitNavigationForTemplateButtons) SetupTemplateButtonNavigation(hasDisabledButton);
-
-            if (InputDeviceManager.autoFocus) SetFocus(firstSelected);
 
             NotifyContentChanged();
         }

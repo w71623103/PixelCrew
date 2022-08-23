@@ -288,7 +288,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private void SortItemsByGroup()
         {
-            database.items.Sort((x, y) => x.Group.CompareTo(y.Group));
+            database.items.Sort((x, y) => (x.Group == null) ? -1 : x.Group.CompareTo(y.Group));
             SetDatabaseDirty("Sort by Group");
         }
 

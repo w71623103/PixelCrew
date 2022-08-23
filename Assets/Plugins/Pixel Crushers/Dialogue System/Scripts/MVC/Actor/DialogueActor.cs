@@ -241,10 +241,25 @@ namespace PixelCrushers.DialogueSystem
         public virtual string AdjustSubtitleColor(Subtitle subtitle)
         {
             var text = subtitle.formattedText.text;
-            return !standardDialogueUISettings.setSubtitleColor ? text
-                : (standardDialogueUISettings.applyColorToPrependedName ?
-                    UITools.WrapTextInColor(subtitle.speakerInfo.Name + standardDialogueUISettings.prependActorNameSeparator, standardDialogueUISettings.subtitleColor) + text
-                    : UITools.WrapTextInColor(text, standardDialogueUISettings.subtitleColor));
+            if (!standardDialogueUISettings.setSubtitleColor)
+            {
+                return text;
+            }
+            if (standardDialogueUISettings.applyColorToPrependedName)
+            {
+                if (string.IsNullOrEmpty(subtitle.speakerInfo.Name))
+                {
+                    return text;
+                }
+                else
+                {
+                    return UITools.WrapTextInColor(subtitle.speakerInfo.Name + standardDialogueUISettings.prependActorNameSeparator, standardDialogueUISettings.subtitleColor) + text;
+                }
+            }
+            else
+            {
+                return UITools.WrapTextInColor(text, standardDialogueUISettings.subtitleColor);
+            }
         }
 
         /// <summary>

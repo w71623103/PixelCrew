@@ -36,6 +36,9 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private bool showActorPortraits = false;
 
         [SerializeField]
+        private bool showDescriptions = false;
+
+        [SerializeField]
         private bool showParticipantNames = true;
 
         [SerializeField]
@@ -334,7 +337,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 var group = currentConversation.entryGroups[i];
                 if (!nodeEditorVisibleRect.Overlaps(group.rect)) continue; // Skip drawing if not in visible window.
                 GUI.color = group.color;
-                GUI.DrawTexture(group.rect, boxTexture);
+                if (boxTexture != null) GUI.DrawTexture(group.rect, boxTexture);
                 if (!isRenamingEntryGroup)
                 {
                     GUI.color = new Color(group.color.r, group.color.g, group.color.b, 1);
@@ -342,7 +345,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 }
                 GUI.color = originalColor;
                 var resizeRect = new Rect(group.rect.x + group.rect.width - 20, group.rect.y + group.rect.height - 20, 16, 16);
-                GUI.DrawTexture(resizeRect, resizeIcon);
+                if (resizeIcon != null) GUI.DrawTexture(resizeRect, resizeIcon);
             }
             GUI.color = originalColor;
         }
@@ -825,7 +828,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             if (_zoom > 0.5f)
             {
                 // Draw icons for Sequence, Conditions, Script, & Event:
-                if (!string.IsNullOrEmpty(entry.Sequence) && !(entry.id == 0 && entry.Sequence == "None()"))
+                if (DoesDialogueEntryHaveSequence(entry))
                 {
                     GUI.Label(new Rect((boxRect.x + boxRect.width) - 44, (boxRect.y + boxRect.height) - 15, 16, 16), new GUIContent(sequenceIcon, entry.Sequence));
                 }
@@ -851,6 +854,16 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 if (portrait != null)
                 {
                     GUIDrawSprite(new Rect(boxRect.x - 30, boxRect.y, 30, 30), portrait);
+                }
+            }
+
+            if (showDescriptions)
+            {
+                var descriptionGUIContent = GetDialogueEntryNodeDescription(entry);
+                if (descriptionGUIContent != null)
+                {
+                    var height = EditorStyles.textField.CalcHeight(descriptionGUIContent, boxRect.width);
+                    GUI.Label(new Rect(boxRect.x, boxRect.y + boxRect.height, boxRect.width, height), descriptionGUIContent, EditorStyles.textField);
                 }
             }
 

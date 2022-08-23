@@ -140,7 +140,7 @@ namespace PixelCrushers.DialogueSystem.Celtx
             Field.SetValue(fields, title, updatedString, fieldType);
         }
 
-#region CxSequence Processing
+        #region CxSequence Processing
 
         private void ProcessSequenceList(List<CxContent> sequenceList)
         {
@@ -583,9 +583,9 @@ namespace PixelCrushers.DialogueSystem.Celtx
             }
         }
 
-#endregion
+        #endregion
 
-#region Linking
+        #region Linking
 
         private string GetLinkConditionId(string sourceCeltxId, string destinationCeltxId)
         {
@@ -644,9 +644,9 @@ namespace PixelCrushers.DialogueSystem.Celtx
             }
         }
 
-#endregion
+        #endregion
 
-#region Text Processing
+        #region Text Processing
         private bool StringStartsWithTag(string stringToCheck, string targetTag)
         {
             if (stringToCheck == null || targetTag == null) { return false; }
@@ -720,9 +720,9 @@ namespace PixelCrushers.DialogueSystem.Celtx
                 return "";
             }
         }
-#endregion
+        #endregion
 
-#region Catalog Data Processing
+        #region Catalog Data Processing
 
         private void ConvertCharacterCatalogEntryToDSActor(CxAttrs catalogItemAttrs)
         {
@@ -734,16 +734,31 @@ namespace PixelCrushers.DialogueSystem.Celtx
                     int actorID = template.GetNextActorID(database);
                     actor = template.CreateActor(actorID, catalogItemAttrs.title, IsPlayerCharacter(catalogItemAttrs));
                     database.actors.Add(actor);
-                    celtxData.actorIdLookupByCxCharacterCatalogId.Add(catalogItemAttrs.id, actorID);
                 }
                 else
                 {
-                    Debug.LogWarning("Celtx Import: Actor " + catalogItemAttrs.title + " was already added with Celtx ID " + actor.LookupValue(CeltxFields.CatalogId) + " but another actor with same name has Celtx ID " + catalogItemAttrs.id);
+                    var originalActor = (database.syncInfo.syncActors && database.syncInfo.syncActorsDatabase != null)
+                        ? database.syncInfo.syncActorsDatabase.GetActor(actor.Name) : null;
+                    if (originalActor != null)
+                    {
+                        AppendToField(originalActor.fields, CeltxFields.CatalogId, catalogItemAttrs.id, FieldType.Text);
+                        AppendToField(originalActor.fields, CeltxFields.Description, catalogItemAttrs.item_data.description, FieldType.Text);
+                        AppendToField(originalActor.fields, CeltxFields.Pictures, getPictureString(catalogItemAttrs), FieldType.Files);
+#if UNITY_EDITOR
+                        UnityEditor.EditorUtility.SetDirty(database.syncInfo.syncActorsDatabase);
+#endif
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Celtx Import: Actor " + catalogItemAttrs.title + " was already added with Celtx ID " + actor.LookupValue(CeltxFields.CatalogId) + " but another actor with same name has Celtx ID " + catalogItemAttrs.id);
+                    }
                 }
 
                 AppendToField(actor.fields, CeltxFields.CatalogId, catalogItemAttrs.id, FieldType.Text);
                 AppendToField(actor.fields, CeltxFields.Description, catalogItemAttrs.item_data.description, FieldType.Text);
                 AppendToField(actor.fields, CeltxFields.Pictures, getPictureString(catalogItemAttrs), FieldType.Files);
+
+                celtxData.actorIdLookupByCxCharacterCatalogId[catalogItemAttrs.id] = actor.id;
             }
             catch (System.Exception e)
             {
@@ -825,6 +840,19 @@ namespace PixelCrushers.DialogueSystem.Celtx
                     location = template.CreateLocation(locationId, catalogItemAttrs.title);
                     database.locations.Add(location);
                 }
+                else
+                {
+                    var originalLocation = (database.syncInfo.syncLocations && database.syncInfo.syncLocationsDatabase != null)
+                        ? database.syncInfo.syncLocationsDatabase.GetLocation(location.Name) : null;
+                    if (originalLocation != null)
+                    {
+                        AppendToField(originalLocation.fields, CeltxFields.CatalogId, catalogItemAttrs.id, FieldType.Text);
+                        AppendToField(originalLocation.fields, CeltxFields.Description, catalogItemAttrs.item_data.description, FieldType.Text);
+#if UNITY_EDITOR
+                        UnityEditor.EditorUtility.SetDirty(database.syncInfo.syncLocationsDatabase);
+#endif
+                    }
+                }
 
                 AppendToField(location.fields, CeltxFields.CatalogId, catalogItemAttrs.id, FieldType.Text);
                 AppendToField(location.fields, CeltxFields.Description, catalogItemAttrs.item_data.description, FieldType.Text);
@@ -847,10 +875,25 @@ namespace PixelCrushers.DialogueSystem.Celtx
                     item = template.CreateItem(itemId, catalogItemAttrs.title);
                     database.items.Add(item);
                 }
+                else
+                {
+                    var originalItem = (database.syncInfo.syncItems && database.syncInfo.syncItemsDatabase != null)
+                        ? database.syncInfo.syncItemsDatabase.GetItem(item.Name) : null;
+                    if (originalItem != null)
+                    {
+                        AppendToField(originalItem.fields, CeltxFields.CatalogId, catalogItemAttrs.id, FieldType.Text);
+                        AppendToField(originalItem.fields, CeltxFields.Description, catalogItemAttrs.item_data.description, FieldType.Text);
+                        AppendToField(originalItem.fields, CeltxFields.ItemType, catalogItemAttrs.item_data.item_type, FieldType.Text);
+                        AppendToField(originalItem.fields, CeltxFields.ItemProperties, catalogItemAttrs.item_data.item_properties, FieldType.Text);
+                        AppendToField(originalItem.fields, CeltxFields.ItemAvailability, catalogItemAttrs.item_data.item_availability, FieldType.Text);
+#if UNITY_EDITOR
+                        UnityEditor.EditorUtility.SetDirty(database.syncInfo.syncItemsDatabase);
+#endif
+                    }
+                }
 
                 AppendToField(item.fields, CeltxFields.CatalogId, catalogItemAttrs.id, FieldType.Text);
                 AppendToField(item.fields, CeltxFields.Description, catalogItemAttrs.item_data.description, FieldType.Text);
-
                 AppendToField(item.fields, CeltxFields.ItemType, catalogItemAttrs.item_data.item_type, FieldType.Text);
                 AppendToField(item.fields, CeltxFields.ItemProperties, catalogItemAttrs.item_data.item_properties, FieldType.Text);
                 AppendToField(item.fields, CeltxFields.ItemAvailability, catalogItemAttrs.item_data.item_availability, FieldType.Text);
@@ -878,9 +921,9 @@ namespace PixelCrushers.DialogueSystem.Celtx
                 LogError(MethodBase.GetCurrentMethod(), e, catalogItemAttrs.id, catalogItemAttrs.title);
             }
         }
-#endregion
+        #endregion
 
-#region Variables and Conditions
+        #region Variables and Conditions
 
         private void ConvertCeltxVariableToDSVariable(CxVariable variableObject)
         {
@@ -917,12 +960,28 @@ namespace PixelCrushers.DialogueSystem.Celtx
                         break;
                 }
 
-                int variableId = template.GetNextVariableID(database);
-                Variable variable = template.CreateVariable(variableId, variableObject.name, variableDefaultValue, fieldType);
-                database.variables.Add(variable);
+                var variable = database.GetVariable(variableObject.name);
+                if (variable == null)
+                {
+                    int variableId = template.GetNextVariableID(database);
+                    variable = template.CreateVariable(variableId, variableObject.name, variableDefaultValue, fieldType);
+                    database.variables.Add(variable);
+                }
+                else
+                {
+                    var originalVariable = (database.syncInfo.syncVariables && database.syncInfo.syncVariablesDatabase != null)
+                        ? database.syncInfo.syncVariablesDatabase.GetVariable(variableObject.name) : null;
+                    if (originalVariable != null)
+                    {
+                        AppendToField(originalVariable.fields, CeltxFields.Description, variableObject.desc, FieldType.Text);
+#if UNITY_EDITOR
+                        UnityEditor.EditorUtility.SetDirty(database.syncInfo.syncVariablesDatabase);
+#endif
+                    }
+                }
 
                 AppendToField(variable.fields, CeltxFields.Description, variableObject.desc, FieldType.Text);
-                celtxData.variableLookupByCeltxId.Add(variableObject.id, variableObject.name);
+                celtxData.variableLookupByCeltxId[variableObject.id] = variableObject.name;
             }
             catch (System.Exception e)
             {
@@ -1126,9 +1185,9 @@ namespace PixelCrushers.DialogueSystem.Celtx
             }
         }
 
-#endregion
+        #endregion
 
-#region Check Sequence Syntax
+        #region Check Sequence Syntax
 
         /// <summary>
         /// Check syntax of all sequences in all dialogue entries in database.
@@ -1157,9 +1216,9 @@ namespace PixelCrushers.DialogueSystem.Celtx
             }
         }
 
-#endregion
+        #endregion
 
-#region Logging
+        #region Logging
 
         private string GetNullDataString(string nullFieldName)
         {
@@ -1206,7 +1265,7 @@ namespace PixelCrushers.DialogueSystem.Celtx
             W, E, I
         }
 
-#endregion
+        #endregion
     }
 }
 #endif

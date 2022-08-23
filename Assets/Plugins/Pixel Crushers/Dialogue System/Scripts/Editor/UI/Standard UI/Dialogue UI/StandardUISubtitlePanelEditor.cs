@@ -24,7 +24,12 @@ namespace PixelCrushers.DialogueSystem
             EditorGUILayout.PropertyField(serializedObject.FindProperty("onlyShowNPCPortraits"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("useAnimatedPortraits"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("usePortraitNativeSize"), true);
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("accumulateText"), true);
+            var accumulateTextProperty = serializedObject.FindProperty("accumulateText");
+            EditorGUILayout.PropertyField(accumulateTextProperty, true);
+            if (accumulateTextProperty.boolValue)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("maxLines"), true); 
+            }
             EditorGUILayout.PropertyField(serializedObject.FindProperty("addSpeakerName"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("addSpeakerNameFormat"), true);
             EditorGUILayout.PropertyField(serializedObject.FindProperty("delayTypewriterUntilOpen"), true);

@@ -64,6 +64,10 @@ namespace PixelCrushers
 
         private static AsyncOperation m_currentAsyncOperation = null;
 
+        private static int m_framesToWaitBeforeSaveDataAppliedEvent = 0;
+
+        private static WaitForEndOfFrame endOfFrame = new WaitForEndOfFrame();
+
         private static bool m_isQuitting = false;
 
 #if UNITY_2019_3_OR_NEWER && UNITY_EDITOR
@@ -81,6 +85,8 @@ namespace PixelCrushers
             m_currentSceneIndex = NoSceneIndex;
             m_addedScenes = new List<string>();
             m_currentAsyncOperation = null;
+            m_framesToWaitBeforeSaveDataAppliedEvent = 0;
+            endOfFrame = new WaitForEndOfFrame();
             m_isQuitting = false;
         }
 #endif
@@ -128,6 +134,18 @@ namespace PixelCrushers
             {
                 if (m_instance != null) m_instance.m_framesToWaitBeforeApplyData = value;
             }
+        }
+
+        /// <summary>
+        /// If a saver requires additional frames after ApplyData() before the saveDataApplied() event
+        /// should be called, set this property.
+        /// 
+        /// Note: This value is reset to zero after every call to ApplySavedGameData.
+        /// </summary>
+        public static int framesToWaitBeforeSaveDataAppliedEvent
+        { 
+            get { return m_framesToWaitBeforeSaveDataAppliedEvent; }
+            set { m_framesToWaitBeforeSaveDataAppliedEvent = value; }
         }
 
         public static bool debug
@@ -697,6 +715,24 @@ namespace PixelCrushers
                     Debug.LogException(e);
                 }
             }
+            if (framesToWaitBeforeSaveDataAppliedEvent == 0 || instance == null)
+            {
+                saveDataApplied();
+            }
+            else
+            {
+                instance.StartCoroutine(DelayedSaveDataAppliedCoroutine(framesToWaitBeforeSaveDataAppliedEvent));
+                framesToWaitBeforeSaveDataAppliedEvent = 0;
+            }
+        }
+
+        protected static IEnumerator DelayedSaveDataAppliedCoroutine(int frames)
+        {
+            for (int i = 0; i < frames; i++)
+            {
+                yield return null;
+            }
+            yield return endOfFrame;
             saveDataApplied();
         }
 
@@ -797,7 +833,7 @@ namespace PixelCrushers
             {
                 yield return null;
             }
-            yield return new WaitForEndOfFrame();
+            yield return endOfFrame;
             m_playerSpawnpoint = !string.IsNullOrEmpty(spawnpointName) ? GameObject.Find(spawnpointName) : null;
             if (!string.IsNullOrEmpty(spawnpointName) && m_playerSpawnpoint == null) Debug.LogWarning("Save System: Can't find spawnpoint '" + spawnpointName + "'. Is spelling and capitalization correct?");
             ApplySavedGameData(savedGameData);

@@ -39,9 +39,13 @@ namespace PixelCrushers
             public List<SpawnedObjectData> list = new List<SpawnedObjectData>();
         }
 
-        [Tooltip("Prefabs for all spawnable objects. If your spawnable object isn't in this list, Spawned Object Manager won't be able to respawn it when restoring a scene.")]
+        [Tooltip("Prefabs for all spawnable objects except those in Spawned Object Prefab Lists below. If your spawnable object isn't in this list or Spawned Object Prefab Lists, Spawned Object Manager won't be able to respawn it when restoring a scene.")]
         [SerializeField]
         private List<SpawnedObject> m_spawnedObjectPrefabs = new List<SpawnedObject>();
+
+        [Tooltip("Additional lists of spawnable object prefabs. If your spawnable object isn't in any of these lists or Spawned Object Prefabs above, Spawned Object Manager won't be able to respawn it when restoring a scene.")]
+        [SerializeField]
+        private List<SpawnedObjectList> m_spawnedObjectPrefabLists = new List<SpawnedObjectList>();
 
         [Tooltip("Objects that have currently been spawned.")]
         [SerializeField]
@@ -57,6 +61,12 @@ namespace PixelCrushers
         {
             get { return m_spawnedObjectPrefabs; }
             set { m_spawnedObjectPrefabs = value; }
+        }
+
+        public List<SpawnedObjectList> spawnedObjectPrefabLists
+        {
+            get { return m_spawnedObjectPrefabLists; }
+            set { m_spawnedObjectPrefabLists = value; }
         }
 
         public List<SpawnedObject> spawnedObjects
@@ -155,7 +165,16 @@ namespace PixelCrushers
 
         protected virtual SpawnedObject GetSpawnedObjectPrefab(string prefabName)
         {
-            return m_spawnedObjectPrefabs.Find(x => x != null && string.Equals(x.name, prefabName));
+            var prefab = m_spawnedObjectPrefabs.Find(x => x != null && string.Equals(x.name, prefabName));
+            if (prefab == null)
+            {
+                foreach (SpawnedObjectList list in spawnedObjectPrefabLists)
+                {
+                    prefab = list.spawnedObjectPrefabs.Find(x => x != null && string.Equals(x.name, prefabName));
+                    if (prefab != null) break;
+                }
+            }
+            return prefab;
         }
 
         public static void AddSpawnedObjectData(SpawnedObject spawnedObject)

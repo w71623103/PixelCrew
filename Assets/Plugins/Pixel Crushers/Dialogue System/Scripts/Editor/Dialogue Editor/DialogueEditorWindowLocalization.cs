@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEditor;
 using UnityEditorInternal;
 using System;
@@ -60,6 +61,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private GUIContent exportExtraEntryFieldsLabel = new GUIContent("Extra Dialogue Entry Fields", "(Optional) Extra dialogue entry fields to localize.");
         private GUIContent exportExtraQuestFieldsLabel = new GUIContent("Extra Quest Fields", "(Optional) Extra quest fields to localize.");
 
+        private Rect localizationButtonPosition = new Rect();
+
         #endregion
 
         #region Draw Localization Foldout Section
@@ -115,22 +118,24 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             EditorGUI.BeginDisabledGroup(exportLocalizationKeyField && string.IsNullOrEmpty(localizationKeyField));
             if (GUILayout.Button("Export...", GUILayout.Width(100)))
             {
-                var newOutputFolder = EditorUtility.OpenFolderPanel("Export Localization Files", localizationLanguages.outputFolder, string.Empty);
-                if (!string.IsNullOrEmpty(newOutputFolder))
-                {
-                    localizationLanguages.outputFolder = newOutputFolder;
-                    ExportLocalizationFiles();
-                }
+                ExportLocalizationFiles();
             }
             if (GUILayout.Button("Import...", GUILayout.Width(100)))
             {
-                var newOutputFolder = EditorUtility.OpenFolderPanel("Import Localization Files", localizationLanguages.outputFolder, string.Empty);
-                if (!string.IsNullOrEmpty(newOutputFolder))
-                {
-                    localizationLanguages.outputFolder = newOutputFolder;
-                    ImportLocalizationFiles();
-                }
+                ImportLocalizationFiles();
             }
+
+            if (EditorGUILayout.DropdownButton(new GUIContent("Localization Services", "Request a quote for localization services from one of our partners."), FocusType.Keyboard, GUILayout.Width(140)))
+            {
+                GenericMenu dropdownMenu = new GenericMenu();
+                dropdownMenu.AddItem(new GUIContent("Get Localized by Alocai..."), false, () =>
+                {
+                    LocalizationByAlocai();
+                });
+                dropdownMenu.DropDown(localizationButtonPosition);
+            }
+            if (Event.current.type == EventType.Repaint) localizationButtonPosition = GUILayoutUtility.GetLastRect(); // cache the position so it can be used when the user clicks the dropdown
+
             EditorGUI.EndDisabledGroup();
             EditorGUILayout.EndHorizontal();
             EditorWindowTools.EndIndentedSection();
@@ -254,8 +259,21 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private void ExportLocalizationFiles()
         {
+            var newOutputFolder = EditorUtility.OpenFolderPanel("Export Localization Files", localizationLanguages.outputFolder, string.Empty);
+            if (!string.IsNullOrEmpty(newOutputFolder))
+            {
+                if (ExportLocalizationFilesToFolder(newOutputFolder))
+                {
+                    EditorUtility.DisplayDialog("Exported Localization CSV", "Localization files are in " + localizationLanguages.outputFolder + ". Open these files in a spreadsheet application and add translations. Then import them by using the Import... button.", "OK");
+                }
+            }
+        }
+
+        private bool ExportLocalizationFilesToFolder(string folderName)
+        {
             try
             {
+                localizationLanguages.outputFolder = folderName;
                 InitializeActorNameLookupCache();
                 var numLanguages = localizationLanguages.languages.Count;
                 for (int i = 0; i < numLanguages; i++)
@@ -264,7 +282,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                     var language = localizationLanguages.languages[i];
                     if (EditorUtility.DisplayCancelableProgressBar("Exporting Localization CSV", "Exporting CSV files for " + language, progress))
                     {
-                        return;
+                        return false;
                     }
 
                     // Write Dialogue_LN.csv file:
@@ -325,9 +343,9 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                                     }
                                     sb.AppendFormat("{0},", WrapCSVValue(field.value));
                                 }
-                                sb.AppendFormat("{0},{1},{2}", 
-                                    (exportLocalizationConversationTitle ? WrapCSVValue(conversationTitle) : c.id.ToString()), 
-                                    de.id, 
+                                sb.AppendFormat("{0},{1},{2}",
+                                    (exportLocalizationConversationTitle ? WrapCSVValue(conversationTitle) : c.id.ToString()),
+                                    de.id,
                                     WrapCSVValue(LookupActorName(de.ActorID)));
                                 foreach (string value in fields)
                                     sb.AppendFormat(",{0}", WrapCSVValue(value));
@@ -427,12 +445,13 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                         }
                     }
                 }
+
+                return true;
             }
             finally
             {
                 EditorUtility.ClearProgressBar();
             }
-            EditorUtility.DisplayDialog("Exported Localization CSV", "Localization files are in " + localizationLanguages.outputFolder + ". Open these files in a spreadsheet application and add translations. Then import them by using the Import... button.", "OK");
         }
 
         private string GetNewKeyFieldValue()
@@ -483,8 +502,19 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private void ImportLocalizationFiles()
         {
+            var newOutputFolder = EditorUtility.OpenFolderPanel("Import Localization Files", localizationLanguages.outputFolder, string.Empty);
+            if (!string.IsNullOrEmpty(newOutputFolder))
+            {
+                ImportLocalizationFilesFromFolder(newOutputFolder);
+            }
+
+        }
+
+        private void ImportLocalizationFilesFromFolder(string folderName)
+        {
             try
             {
+                localizationLanguages.outputFolder = folderName;
                 conversationIDCache.Clear();
                 lastCachedConversation = null;
                 var numLanguages = localizationLanguages.languages.Count;
@@ -584,7 +614,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                                     if (string.IsNullOrEmpty(field)) continue;
 
                                     if (!exportLocalizationCreateNewFields &&
-                                        !Field.FieldExists(entry.fields, field) && 
+                                        !Field.FieldExists(entry.fields, field) &&
                                         string.IsNullOrEmpty(columns[columnIndex - 1]))
                                     {
                                         continue;
@@ -651,7 +681,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                                         numExtraQuestFields++;
 
                                         if (!exportLocalizationCreateNewFields &&
-                                            !Field.FieldExists(quest.fields, field) && 
+                                            !Field.FieldExists(quest.fields, field) &&
                                             string.IsNullOrEmpty(columns[columnIndex - 1]))
                                         {
                                             continue;
@@ -660,8 +690,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                                         Field.SetValue(quest.fields, field + " " + language, columns[columnIndex]);
 
                                         if (alsoImportMainText)
-                                        { 
-                                            Field.SetValue(quest.fields, field, columns[columnIndex - 1]); 
+                                        {
+                                            Field.SetValue(quest.fields, field, columns[columnIndex - 1]);
                                         }
                                     }
 
@@ -773,6 +803,128 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 s2 = s2.Substring(1, s2.Length - 2).Replace("\"\"", "\"");
             }
             return s2;
+        }
+
+        #endregion
+
+        #region Alocai
+
+        private void LocalizationByAlocai()
+        {
+            // Show an explanation and confirmation dialog:
+            if (!EditorUtility.DisplayDialog("Request Quote From Alocai",
+                "Pixel Crushers is partnering with localization services to provide additional localization options for your Dialogue System projects.\n\n" +
+                "Click Continue to request a quote from game localization platform Alocai to translate your dialogue database content. " +
+                "The Dialogue Editor will ask you to select a folder to export your database content, which will then be sent to Alocai so they can prepare a quote.",
+                "Continue", "Cancel"))
+            {
+                return;
+            }
+
+            // make sure the options are selected correctly
+            if (!exportLocalizationKeyField)
+            {
+                exportLocalizationKeyField = true;
+                localizationKeyField = "Guid";
+                exportAssignFieldValues = true;
+            }
+
+            // export the localization data to files in a local folder
+            var newOutputFolder = EditorUtility.OpenFolderPanel("Export Localization Files", localizationLanguages.outputFolder, string.Empty);
+            if (!string.IsNullOrEmpty(newOutputFolder))
+            {
+                if (ExportLocalizationFilesToFolder(newOutputFolder))
+                {
+                    // send the files to Alocai
+                    SendRequestToAlocai();
+                }
+            }
+        }
+
+        private void SendRequestToAlocai()
+        {
+            string server = "https://quote-requester-api.alocai.com";
+            string apiKey = "539568b8-3589-4ccc-ace5-4439e315bd4f";
+
+            try
+            {
+                List<IMultipartFormSection> data = new List<IMultipartFormSection>();
+
+                int numLanguages = localizationLanguages.languages.Count;
+                for (int i = 0; i < numLanguages; i++)
+                {
+                    string language = localizationLanguages.languages[i];
+
+                    // Dialogue_LN.csv file:
+                    string dialogueFilename = "Dialogue_" + language + ".csv";
+                    string dialogueFilePath = localizationLanguages.outputFolder + "/" + dialogueFilename;
+                    byte[] dialogueFileContents = File.ReadAllBytes(dialogueFilePath);
+                    data.Add(new MultipartFormFileSection("files", dialogueFileContents, dialogueFilename, "text/csv"));
+
+                    // Quests_LN.csv file:
+                    string questsFilename = "Quests_" + language + ".csv";
+                    string questsFilePath = localizationLanguages.outputFolder + "/" + questsFilename;
+                    byte[] questsFileContents = File.ReadAllBytes(questsFilePath);
+                    data.Add(new MultipartFormFileSection("files", questsFileContents, questsFilename, "text/csv"));
+                }
+
+                Debug.Log("Sending request to " + server);
+
+                UnityWebRequest www = UnityWebRequest.Post(server + "/api/v1/files", data);
+                www.SetRequestHeader("X-Api-Key", apiKey);
+                www.SendWebRequest();
+
+                while (!www.isDone)
+                {
+                    if (EditorUtility.DisplayCancelableProgressBar("Uploading Localization files", "Uploading localization files to Alocai", www.uploadProgress))
+                    {
+                        www.Abort();
+                        return;
+                    }
+                }
+
+#if UNITY_2020_1_OR_NEWER
+                Debug.LogFormat(this, "{0} {1}", www.responseCode, www.result);
+                if (www.result == UnityWebRequest.Result.Success)
+#else
+                long responseCodeSuccess = 201;
+                Debug.LogFormat(this, "Web response code: {0}", www.responseCode);
+                if (www.responseCode == responseCodeSuccess)
+#endif
+                {
+                    // success
+                    string text = www.downloadHandler.text;
+                    Debug.Log(text);
+
+                    var response = JsonUtility.FromJson<AlocaiResponse>(text);
+                    string responseUrl = response.quote_requester_client_url;
+                    Application.OpenURL(responseUrl);
+
+                    // Show reminder to add the languages to the list on the web form
+                    //EditorUtility.DisplayDialog("Localization by Alocai", "Be sure to select all the desired languages on the web form.", "OK");
+
+                    Debug.Log("Request sent to Alocai quote request server.");
+                }
+                else
+                {
+                    // error
+                    Debug.LogError("Error connecting to Alocai's request server: " + www.error);
+                    Debug.Log("Error details text: " + www.downloadHandler.text);
+
+                    EditorUtility.DisplayDialog("Localization by Alocai",
+                        "There was an error connecting to Alocai's request server:\n\n" + www.error +
+                        "\n\nPlease contact Pixel Crushers for support, and provide the error message.", "OK");
+                }
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+        }
+
+        public class AlocaiResponse
+        {
+            public string quote_requester_client_url;
         }
 
         #endregion

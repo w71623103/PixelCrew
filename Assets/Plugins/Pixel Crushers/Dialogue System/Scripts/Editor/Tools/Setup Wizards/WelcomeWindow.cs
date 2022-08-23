@@ -26,7 +26,7 @@ namespace PixelCrushers.DialogueSystem
         public static WelcomeWindow ShowWindow()
         {
             var window = GetWindow<WelcomeWindow>(false, "Welcome");
-            window.minSize = new Vector2(370, 560);
+            window.minSize = new Vector2(370, 600);
             window.showOnStart = true; // Can't check EditorPrefs when constructing window: showOnStartPrefs;
             return window;
         }
@@ -179,6 +179,7 @@ namespace PixelCrushers.DialogueSystem
             var define_USE_ARTICY = false;
             var define_USE_AURORA = false;
             var define_USE_CELTX = false;
+            var define_USE_CELTX3 = false;
             var define_USE_TWINE = false;
             var define_USE_YARN = false;
             var define_TMP_PRESENT = false;
@@ -195,6 +196,7 @@ namespace PixelCrushers.DialogueSystem
                 if (string.Equals(ScriptingSymbolNames.USE_ARTICY, defines[i].Trim())) define_USE_ARTICY = true;
                 if (string.Equals(ScriptingSymbolNames.USE_AURORA, defines[i].Trim())) define_USE_AURORA = true;
                 if (string.Equals(ScriptingSymbolNames.USE_CELTX, defines[i].Trim())) define_USE_CELTX = true;
+                if (string.Equals(ScriptingSymbolNames.USE_CELTX3, defines[i].Trim())) define_USE_CELTX3 = true;
                 if (string.Equals(ScriptingSymbolNames.USE_TWINE, defines[i].Trim())) define_USE_TWINE = true;
                 if (string.Equals(ScriptingSymbolNames.USE_YARN, defines[i].Trim())) define_USE_YARN = true;
                 if (string.Equals(ScriptingSymbolNames.TMP_PRESENT, defines[i].Trim())) define_TMP_PRESENT = true;
@@ -209,7 +211,8 @@ namespace PixelCrushers.DialogueSystem
             define_USE_ARCWEAVE = false;
             define_USE_ARTICY = true;
             define_USE_AURORA = true;
-            define_USE_CELTX = true;
+            define_USE_CELTX = false;
+            define_USE_CELTX3 = false;
             define_USE_TWINE = true;
             define_USE_YARN = true;
 #endif
@@ -217,12 +220,14 @@ namespace PixelCrushers.DialogueSystem
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.LabelField(new GUIContent("Enable support for:", "NOTE: Enables Dialogue System support. You must still enable each package in Package Manager."));
 #if UNITY_2018_1_OR_NEWER && !EVALUATION_VERSION
-            var new_USE_PHYSICS2D = EditorGUILayout.ToggleLeft("2D Physics (USE_PHYSICS2D)", define_USE_PHYSICS2D);
+            var new_TMP_PRESENT = EditorGUILayout.ToggleLeft(new GUIContent(define_TMP_PRESENT ? "TextMesh Pro (TMP_PRESENT)" : "TextMesh Pro (TMP_PRESENT) <- USING TEXTMESH PRO?", "Enable Dialogue System support for TextMesh Pro. You must still enable TextMesh Pro in Package Manager."), define_TMP_PRESENT);
+            var new_USE_PHYSICS2D = EditorGUILayout.ToggleLeft(define_USE_PHYSICS2D ? "2D Physics (USE_PHYSICS2D)" : "2D Physics (USE_PHYSICS2D) <- MAKING A 2D GAME?", define_USE_PHYSICS2D);
             var new_USE_ADDRESSABLES = EditorGUILayout.ToggleLeft("Addressables (USE_ADDRESSABLES)", define_USE_ADDRESSABLES);
             var new_USE_CINEMACHINE = EditorGUILayout.ToggleLeft(new GUIContent("Cinemachine (USE_CINEMACHINE)", "Enable Dialogue System support for Cinemachine. You must still enable Cinemachine in Package Manager."), define_USE_CINEMACHINE);
             var new_USE_NEW_INPUT = EditorGUILayout.ToggleLeft("New Input System (USE_NEW_INPUT)", define_USE_NEW_INPUT);
 #else
             EditorGUI.BeginDisabledGroup(true);
+            EditorGUILayout.ToggleLeft(new GUIContent("TextMesh Pro (TMP_PRESENT)", "TextMesh Pro support not available in evaluation version."), define_TMP_PRESENT);
             EditorGUILayout.ToggleLeft(new GUIContent("2D Physics (USE_PHYSICS2D)", "Support is built in for evaluation version or Unity 2017 and earlier."), define_USE_PHYSICS2D);
             EditorGUILayout.ToggleLeft(new GUIContent("Addressables (USE_ADDRESSABLES)", "Addressables support not available in evaluation version."), define_USE_ADDRESSABLES);
             EditorGUILayout.ToggleLeft(new GUIContent("New Input System (USE_NEW_INPUT)", "New Input System support not available in evaluation version."), define_USE_NEW_INPUT);
@@ -237,13 +242,11 @@ namespace PixelCrushers.DialogueSystem
 
 #if EVALUATION_VERSION
             EditorGUI.BeginDisabledGroup(true);
-            EditorGUILayout.ToggleLeft(new GUIContent("TextMesh Pro (TMP_PRESENT)", "TextMesh Pro support not available in evaluation version."), define_TMP_PRESENT);
             EditorGUILayout.ToggleLeft(new GUIContent("Super Text Mesh (USE_STM)", "Super Text Mesh support not available in evaluation version."), define_USE_STM);
             EditorGUI.EndDisabledGroup();
             var new_TMP_PRESENT = define_TMP_PRESENT;
             var new_USE_STM = define_USE_STM;
 #else
-            var new_TMP_PRESENT = EditorGUILayout.ToggleLeft(new GUIContent("TextMesh Pro (TMP_PRESENT)", "Enable Dialogue System support for TextMesh Pro. You must still enable TextMesh Pro in Package Manager."), define_TMP_PRESENT);
             var new_USE_STM = EditorGUILayout.ToggleLeft(new GUIContent("Super Text Mesh (USE_STM)", "Enable Dialogue System support for Super Text Mesh. Requires Super Text Mesh in project."), define_USE_STM);
 #endif
 
@@ -252,7 +255,8 @@ namespace PixelCrushers.DialogueSystem
             EditorGUILayout.ToggleLeft(new GUIContent("Arcweave (USE_ARCWEAVE)", "Enable Dialogue System support for Arcweave import."), define_USE_ARCWEAVE);
             EditorGUILayout.ToggleLeft(new GUIContent("articy:draft (USE_ARTICY)", "Enable Dialogue System support for articy:draft XML import."), define_USE_ARTICY);
             EditorGUILayout.ToggleLeft(new GUIContent("Aurora Toolset (USE_AURORA)", "Enable Dialogue System support for Aurora (Neverwinter Nights) Toolset import."), define_USE_AURORA);
-            EditorGUILayout.ToggleLeft(new GUIContent("Celtx (USE_CELTX)", "Enable Dialogue System support for Celtx JSON import."), define_USE_CELTX);
+            EditorGUILayout.ToggleLeft(new GUIContent("Celtx GVR 2 (USE_CELTX)", "Enable Dialogue System support for Celtx GVR 2 JSON import."), define_USE_CELTX);
+            EditorGUILayout.ToggleLeft(new GUIContent("Celtx Gem 3 (USE_CELTX3)", "Enable Dialogue System support for Celtx Gem 3 JSON import."), define_USE_CELTX3);
             EditorGUILayout.ToggleLeft(new GUIContent("Twine (USE_TWINE)", "Enable Dialogue System support for Twine Twison import."), define_USE_TWINE);
             EditorGUILayout.ToggleLeft(new GUIContent("Yarn (USE_YARN)", "Enable Dialogue System support for YarnSpinner import."), define_USE_YARN);
             EditorGUI.EndDisabledGroup();
@@ -260,13 +264,15 @@ namespace PixelCrushers.DialogueSystem
             var new_USE_ARTICY = define_USE_ARTICY;
             var new_USE_AURORA = define_USE_AURORA;
             var new_USE_CELTX = define_USE_CELTX;
+            var new_USE_CELTX3 = define_USE_CELTX3;
             var new_USE_TWINE = define_USE_TWINE;
             var new_USE_YARN = define_USE_YARN;
 #else
             var new_USE_ARCWEAVE = EditorGUILayout.ToggleLeft(new GUIContent("Arcweave (USE_ARCWEAVE)", "Enable Dialogue System support for Arcweave import."), define_USE_ARCWEAVE);
             var new_USE_ARTICY = EditorGUILayout.ToggleLeft(new GUIContent("articy:draft (USE_ARTICY)", "Enable Dialogue System support for articy:draft XML import."), define_USE_ARTICY);
             var new_USE_AURORA = EditorGUILayout.ToggleLeft(new GUIContent("Aurora Toolset (USE_AURORA)", "Enable Dialogue System support for Aurora (Neverwinter Nights) Toolset import."), define_USE_AURORA);
-            var new_USE_CELTX = EditorGUILayout.ToggleLeft(new GUIContent("Celtx (USE_CELTX)", "Enable Dialogue System support for Celtx JSON import."), define_USE_CELTX);
+            var new_USE_CELTX = EditorGUILayout.ToggleLeft(new GUIContent("Celtx GVR 2 (USE_CELTX)", "Enable Dialogue System support for Celtx GVR 2 JSON import."), define_USE_CELTX);
+            var new_USE_CELTX3 = EditorGUILayout.ToggleLeft(new GUIContent("Celtx Gem 3 (USE_CELTX3)", "Enable Dialogue System support for Celtx Gem 3 JSON import."), define_USE_CELTX3);
             var new_USE_TWINE = EditorGUILayout.ToggleLeft(new GUIContent("Twine (USE_TWINE)", "Enable Dialogue System support for Twine Twison import."), define_USE_TWINE);
             var new_USE_YARN = EditorGUILayout.ToggleLeft(new GUIContent("Yarn (USE_YARN)", "Enable Dialogue System support for YarnSpinner import."), define_USE_YARN);
 #endif
@@ -281,7 +287,8 @@ namespace PixelCrushers.DialogueSystem
             //if (new_USE_ARCWEAVE != define_USE_ARCWEAVE) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_ARCWEAVE, new_USE_ARCWEAVE);
             if (new_USE_ARTICY != define_USE_ARTICY) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_ARTICY, new_USE_ARTICY);
             if (new_USE_AURORA != define_USE_AURORA) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_AURORA, new_USE_AURORA);
-            if (new_USE_CELTX != define_USE_CELTX) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_CELTX, new_USE_CELTX);
+            //if (new_USE_CELTX != define_USE_CELTX) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_CELTX, new_USE_CELTX);
+            //if (new_USE_CELTX3 != define_USE_CELTX3) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_CELTX3, new_USE_CELTX3);
             if (new_USE_TWINE != define_USE_TWINE) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_TWINE, new_USE_TWINE);
             if (new_USE_YARN != define_USE_YARN) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_YARN, new_USE_YARN);
             if (new_TMP_PRESENT != define_TMP_PRESENT) MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.TMP_PRESENT, new_TMP_PRESENT, true);
@@ -374,6 +381,42 @@ namespace PixelCrushers.DialogueSystem
                 else
                 {
                     MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_ARCWEAVE, new_USE_ARCWEAVE);
+                }
+            }
+            if (new_USE_CELTX != define_USE_CELTX)
+            {
+                if (new_USE_CELTX)
+                {
+                    if (EditorUtility.DisplayDialog("Enable Celtx GVR 2 Import", "This will enable the ability to import Celtx GVR 2 JSON exports. Newtonsoft Json.NET MUST already be installed in your project first. See the Celtx Import instructions in the online manual if Newtonsoft Json.NET is not installed yet.\n\n*IMPORTANT*: Only press OK if Newtonsoft Json.NET is already installed!\n\nTo continue, press OK. If you need to install Newtonsoft Json.NET first, press Cancel.", "OK", "Cancel"))
+                    {
+                        MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_CELTX, new_USE_CELTX);
+                    }
+                    else
+                    {
+                        changed = false;
+                    }
+                }
+                else
+                {
+                    MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_CELTX, new_USE_CELTX);
+                }
+            }
+            if (new_USE_CELTX3 != define_USE_CELTX3)
+            {
+                if (new_USE_CELTX3)
+                {
+                    if (EditorUtility.DisplayDialog("Enable Celtx Gem 3 Import", "This will enable the ability to import Celtx Gem 3 JSON exports. Newtonsoft Json.NET MUST already be installed in your project first. See the Celtx Import instructions in the online manual if Newtonsoft Json.NET is not installed yet.\n\n*IMPORTANT*: Only press OK if Newtonsoft Json.NET is already installed!\n\nTo continue, press OK. If you need to install Newtonsoft Json.NET first, press Cancel.", "OK", "Cancel"))
+                    {
+                        MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_CELTX3, new_USE_CELTX3);
+                    }
+                    else
+                    {
+                        changed = false;
+                    }
+                }
+                else
+                {
+                    MoreEditorUtility.ToggleScriptingDefineSymbol(ScriptingSymbolNames.USE_CELTX3, new_USE_CELTX3);
                 }
             }
 

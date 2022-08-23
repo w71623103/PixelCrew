@@ -58,8 +58,10 @@ namespace PixelCrushers.DialogueSystem.Articy
         public bool UseDefaultActorsIfNoneAssignedToDialogue { get; set; }
         public bool StageDirectionsAreSequences { get; set; }
         public FlowFragmentModes FlowFragmentMode { get; set; }
+        public bool CreateConversationsForLooseFlow { get; set; }
         public string OtherScriptFields { get; set; }
         public string DocumentsSubmenu { get; set; }
+        public bool ImportDocuments { get; set; }
         public string TextTableDocument { get; set; }
         public string OutputFolder { get; set; }
         public bool Overwrite { get; set; }
@@ -69,6 +71,7 @@ namespace PixelCrushers.DialogueSystem.Articy
         public ConvertDropdownsModes ConvertDropdownsAs { get; set; }
         public ConvertSlotsModes ConvertSlotsAs { get; set; }
         public bool UseTechnicalNames { get; set; }
+        public bool CustomDisplayName { get; set; }
         public bool DirectConversationLinksToEntry1 { get; set; }
         public bool ConvertMarkupToRichText { get; set; }
         public bool SplitTextOnPipes { get; set; }
@@ -91,8 +94,10 @@ namespace PixelCrushers.DialogueSystem.Articy
             UseDefaultActorsIfNoneAssignedToDialogue = true;
             StageDirectionsAreSequences = true;
             FlowFragmentMode = FlowFragmentModes.ConversationGroups;
+            CreateConversationsForLooseFlow = false;
             OtherScriptFields = string.Empty;
             DocumentsSubmenu = string.Empty;
+            ImportDocuments = true;
             TextTableDocument = string.Empty;
             OutputFolder = "Assets";
             Overwrite = false;
@@ -102,6 +107,7 @@ namespace PixelCrushers.DialogueSystem.Articy
             ConvertDropdownsAs = ConvertDropdownsModes.Int;
             ConvertSlotsAs = ConvertSlotsModes.DisplayName;
             UseTechnicalNames = false;
+            CustomDisplayName = false;
             DirectConversationLinksToEntry1 = false;
             ConvertMarkupToRichText = true;
             SplitTextOnPipes = true;

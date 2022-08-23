@@ -178,6 +178,9 @@ namespace PixelCrushers.DialogueSystem
             [Tooltip("How to handle continue buttons.")]
             public ContinueButtonMode continueButton = ContinueButtonMode.Never;
 
+            [Tooltip("If ticked, always require continue button on subtitle that ends conversation. Overrides Continue Button dropdown above.")]
+            public bool requireContinueOnLastLine = false;
+
             /// <summary>
             /// Set <c>true</c> to convert "[em#]" tags to rich text codes in formatted text.
             /// Your implementation of IDialogueUI must support rich text.

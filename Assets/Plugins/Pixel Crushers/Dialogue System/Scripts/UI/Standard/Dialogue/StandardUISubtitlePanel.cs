@@ -35,6 +35,9 @@ namespace PixelCrushers.DialogueSystem
         [Tooltip("Each subtitle adds to Subtitle Text instead of replacing it.")]
         public bool accumulateText = false;
 
+        [Tooltip("If Accumulate Text is ticked, accumulate up to this many lines, removing the oldest lines when over the limit.")]
+        public int maxLines = 100;
+
         [Tooltip("If panel has a typewriter effect, don't start typing until panel's Show animation has completed.")]
         public bool delayTypewriterUntilOpen = false;
 
@@ -130,9 +133,10 @@ namespace PixelCrushers.DialogueSystem
         protected Color originalColor { get; set; }
         private string m_accumulatedText = string.Empty;
         public string accumulatedText { get { return m_accumulatedText; } set { m_accumulatedText = value; } }
+        protected int numAccumulatedLines = 0;
 
-        private Animator m_animator = null;
-        protected virtual Animator animator { get { if (m_animator == null && portraitImage != null) m_animator = portraitImage.GetComponent<Animator>(); return m_animator; } set { m_animator = value; } }
+        private Animator m_portraitAnimator = null;
+        protected virtual Animator animator { get { if (m_portraitAnimator == null && portraitImage != null) m_portraitAnimator = portraitImage.GetComponent<Animator>(); return m_portraitAnimator; } set { m_portraitAnimator = value; } }
 
         private Animator m_panelAnimator = null;
 
@@ -169,6 +173,7 @@ namespace PixelCrushers.DialogueSystem
 
         protected Coroutine m_focusWhenOpenCoroutine = null;
         protected Coroutine m_showAfterClosingCoroutine = null;
+        protected Coroutine m_setAnimatorCoroutine = null;
         protected WaitForSeconds m_blockInputDelay = null;
 
         #endregion
@@ -236,9 +241,9 @@ namespace PixelCrushers.DialogueSystem
             Open();
             SetUIElementsActive(true);
             SetPortraitImage(portraitSprite);
-            if (this.portraitName != null) this.portraitName.text = portraitName;
-            if (subtitleText.text != null) subtitleText.text = string.Empty;
             portraitActorName = (dialogueActor != null) ? dialogueActor.actor : portraitName;
+            if (this.portraitName != null) this.portraitName.text = portraitActorName;
+            if (subtitleText.text != null) subtitleText.text = string.Empty;
             CheckDialogueActorAnimator(dialogueActor);
         }
 
@@ -459,6 +464,7 @@ namespace PixelCrushers.DialogueSystem
         {
             m_accumulatedText = string.Empty;
             subtitleText.text = string.Empty;
+            numAccumulatedLines = 0;
         }
 
         public virtual void ShowContinueButton()
@@ -585,6 +591,18 @@ namespace PixelCrushers.DialogueSystem
         {
             TypewriterUtility.StopTyping(subtitleText);
             var previousText = accumulateText ? m_accumulatedText : string.Empty;
+            if (accumulateText && !string.IsNullOrEmpty(subtitle.formattedText.text))
+            {
+                if (numAccumulatedLines < maxLines)
+                {
+                    numAccumulatedLines++;
+                }
+                else
+                {
+                    // If we're at the max number of lines, remove the first line from the accumulated text:
+                    previousText = previousText.Substring(previousText.IndexOf("\n") + 1);
+                }
+            }
             var previousChars = accumulateText ? UITools.StripRPGMakerCodes(Tools.StripTextMeshProTags(Tools.StripRichTextCodes(previousText))).Length : 0;
             SetFormattedText(subtitleText, previousText, subtitle.formattedText);
             if (accumulateText) m_accumulatedText = subtitleText.text + "\n";
@@ -660,12 +678,14 @@ namespace PixelCrushers.DialogueSystem
                         (speakerPanelNumber == SubtitlePanelNumber.Custom && dialogueActor.standardDialogueUISettings.customSubtitlePanel == this);
                     if (isMyPanel)
                     {
-                        StartCoroutine(SetAnimatorAtEndOfFrame(dialogueActor.standardDialogueUISettings.portraitAnimatorController));
+                        if (m_setAnimatorCoroutine != null) StopCoroutine(m_setAnimatorCoroutine);
+                        m_setAnimatorCoroutine = StartCoroutine(SetAnimatorAtEndOfFrame(dialogueActor.standardDialogueUISettings.portraitAnimatorController));
                     }
                 }
                 else
                 {
-                    StartCoroutine(SetAnimatorAtEndOfFrame(null));
+                    if (m_setAnimatorCoroutine != null) StopCoroutine(m_setAnimatorCoroutine);
+                    m_setAnimatorCoroutine = StartCoroutine(SetAnimatorAtEndOfFrame(null));
                 }
             }
         }
@@ -675,7 +695,8 @@ namespace PixelCrushers.DialogueSystem
             if (dialogueActor != null && useAnimatedPortraits && animator != null &&
                 dialogueActor.standardDialogueUISettings.portraitAnimatorController != null)
             {
-                StartCoroutine(SetAnimatorAtEndOfFrame(dialogueActor.standardDialogueUISettings.portraitAnimatorController));
+                if (m_setAnimatorCoroutine != null) StopCoroutine(m_setAnimatorCoroutine);
+                m_setAnimatorCoroutine = StartCoroutine(SetAnimatorAtEndOfFrame(dialogueActor.standardDialogueUISettings.portraitAnimatorController));
             }
         }
 

@@ -392,14 +392,19 @@ namespace PixelCrushers.DialogueSystem
                             {
 
                                 // For groups, evaluate their links (after running the group node's Lua code and OnExecute() event):
-                                if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Add Group ({1}): ID={2}:{3} '{4}' ({5})", new System.Object[] { DialogueDebug.Prefix, GetActorName(m_database.GetActor(destinationEntry.ActorID)), link.destinationConversationID, link.destinationDialogueID, destinationEntry.Title, isValid }));
+                                if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Evaluate Group ({1}): ID={2}:{3} '{4}' ({5})", new System.Object[] { DialogueDebug.Prefix, GetActorName(m_database.GetActor(destinationEntry.ActorID)), link.destinationConversationID, link.destinationDialogueID, destinationEntry.Title, isValid }));
                                 Lua.Run(destinationEntry.userScript, DialogueDebug.logInfo, m_allowLuaExceptions);
                                 destinationEntry.onExecute.Invoke();
+                                isValid = false; // Assume invalid until at least one group's child is true.
                                 for (int i = (int)ConditionPriority.High; i >= 0; i--)
                                 {
-                                    int originalResponseCount = npcResponses.Count + pcResponses.Count; ;
+                                    int originalResponseCount = npcResponses.Count + pcResponses.Count;
                                     EvaluateLinksAtPriority((ConditionPriority)i, destinationEntry, npcResponses, pcResponses, visited);
-                                    if ((npcResponses.Count + pcResponses.Count) > originalResponseCount) break;
+                                    if ((npcResponses.Count + pcResponses.Count) > originalResponseCount)
+                                    {
+                                        isValid = true;
+                                        break;
+                                    }
                                 }
                             }
                             else
@@ -446,7 +451,7 @@ namespace PixelCrushers.DialogueSystem
                                     DialogueLua.MarkDialogueEntryOffered(destinationEntry);
                                 }
                             }
-                            if (stopAtFirstValid) return;
+                            if (isValid && stopAtFirstValid) return;
 
                         }
                         else
@@ -578,7 +583,7 @@ namespace PixelCrushers.DialogueSystem
                     actor = m_database.GetActor(dialogueActor.actor);
                 }
                 if (actor == null) actor = m_database.GetActor(id);
-                string nameInDatabase = (dialogueActor != null) ? dialogueActor.GetActorName() : string.Empty;
+                string nameInDatabase = (dialogueActor != null) ? dialogueActor.actor : string.Empty;
                 if (string.IsNullOrEmpty(nameInDatabase) && actor != null) nameInDatabase = actor.Name;
                 if (character == null && !string.IsNullOrEmpty(nameInDatabase))
                 {

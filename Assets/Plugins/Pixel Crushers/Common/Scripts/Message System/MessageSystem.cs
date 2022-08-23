@@ -427,7 +427,7 @@ namespace PixelCrushers
         /// <param name="values">Any number of additional values to send with message.</param>
         public static void SendMessage(object sender, StringField message, StringField parameter, params object[] values)
         {
-            SendMessageWithTarget(sender, null, message.value, parameter.value, values);
+            SendMessageWithTarget(sender, null, StringField.GetStringValue(message), StringField.GetStringValue(parameter), values);
         }
 
         /// <summary>
@@ -439,7 +439,7 @@ namespace PixelCrushers
         /// <param name="values">Any number of additional values to send with message.</param>
         public static void SendMessage(object sender, StringField message, string parameter, params object[] values)
         {
-            SendMessageWithTarget(sender, null, message.value, parameter, values);
+            SendMessageWithTarget(sender, null, StringField.GetStringValue(message), parameter, values);
         }
 
         /// <summary>
@@ -451,7 +451,7 @@ namespace PixelCrushers
         /// <param name="values">Any number of additional values to send with message.</param>
         public static void SendMessage(object sender, string message, StringField parameter, params object[] values)
         {
-            SendMessageWithTarget(sender, null, message, parameter.value, values);
+            SendMessageWithTarget(sender, null, message, StringField.GetStringValue(parameter), values);
         }
 
         /// <summary>

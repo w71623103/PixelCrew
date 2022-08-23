@@ -81,6 +81,7 @@ namespace PixelCrushers.DialogueSystem.Articy
             DrawOtherScriptsField();
             DrawUseTechnicalNamesToggle();
             DrawDirectConversationLinksToEntry1Toggle();
+            DrawConversationsForLooseFlow();
             DrawDefaultActorsToggle();
             DrawConvertMarkupToggle();
             DrawSplitPipesToggle();
@@ -227,16 +228,24 @@ namespace PixelCrushers.DialogueSystem.Articy
         private void DrawDocumentsSubmenu()
         {
             EditorGUI.BeginChangeCheck();
-            prefs.DocumentsSubmenu = EditorGUILayout.TextField(new GUIContent("Documents Submenu", "When converting documents to conversations, group them under this submenu. Leave blank for no submenu."), prefs.DocumentsSubmenu);
+            prefs.ImportDocuments = EditorGUILayout.Toggle(new GUIContent("Import Documents",
+                "Also import documents as conversations."), prefs.ImportDocuments);
+            if (prefs.ImportDocuments)
+            {
+                prefs.DocumentsSubmenu = EditorGUILayout.TextField(new GUIContent("Documents Submenu", "When converting documents to conversations, group them under this submenu. Leave blank for no submenu."), prefs.DocumentsSubmenu);
+            }
             prefs.TextTableDocument = EditorGUILayout.TextField(new GUIContent("TextTable Document", "Optional name of document whose text should be written to a TextTable asset."), prefs.TextTableDocument);
             if (EditorGUI.EndChangeCheck()) ConverterPrefsTools.Save(prefs);
         }
 
         private void DrawUseTechnicalNamesToggle()
         {
-            prefs.UseTechnicalNames = EditorGUILayout.Toggle(new GUIContent("Use Technical Names", 
+            prefs.UseTechnicalNames = EditorGUILayout.Toggle(new GUIContent("Use Technical Names",
                 "Name dialogue database elements by their articy technical name instead of display name."),
                 prefs.UseTechnicalNames);
+            prefs.CustomDisplayName = EditorGUILayout.Toggle(new GUIContent("Custom DisplayName",
+                "Instead of using entity's name as Display Name, use a custom field named 'DisplayName'."),
+                prefs.CustomDisplayName);
         }
 
         private void DrawDirectConversationLinksToEntry1Toggle()
@@ -244,6 +253,13 @@ namespace PixelCrushers.DialogueSystem.Articy
             prefs.DirectConversationLinksToEntry1 = EditorGUILayout.Toggle(new GUIContent("Conv. Links to Entry 1",
                 "When a link points to a conversation's START node, redirect it to entry 1 instead."),
                 prefs.DirectConversationLinksToEntry1);
+        }
+
+        private void DrawConversationsForLooseFlow()
+        {
+            prefs.CreateConversationsForLooseFlow = EditorGUILayout.Toggle(new GUIContent("Conv. Loose Flow Frags",
+                "Make conversations for flow fragments that aren't inside dialogues."),
+                prefs.CreateConversationsForLooseFlow);
         }
 
         private void DrawDefaultActorsToggle()

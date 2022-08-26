@@ -13,9 +13,9 @@ public class NewPlayer : MonoBehaviour
     public LayerMask platform;
     public Transform groundCheck;
     [SerializeField] private bool onGround;
+    [SerializeField] private bool onPlatform;
 
     [Header("Move")]
-    [SerializeField] private float runSpeed = 5f;
     [SerializeField] private float Speed = 5f;
     [SerializeField] private float Hdirection;
     [SerializeField] private float Vdirection;
@@ -50,6 +50,12 @@ public class NewPlayer : MonoBehaviour
     [SerializeField] private TrailRenderer dashTrail;
     private float DashDir;
 
+    [Header("Interactive")]
+    private bool onDoor;
+    private GameObject portal;
+    private bool onItem;
+    private GameObject item;
+
     // Setting InputMap to Gameplay Map
     // to make sure that the methods below are conducted;
     void OnEnable()
@@ -59,6 +65,7 @@ public class NewPlayer : MonoBehaviour
         playerInput.onJump += Jump;
         playerInput.onStealth += Stealth;
         playerInput.onDash += toDash;
+        playerInput.onInteract += Interact;
     }
     void OnDisable()
     {
@@ -67,6 +74,7 @@ public class NewPlayer : MonoBehaviour
         playerInput.onJump -= Jump;
         playerInput.onStealth -= Stealth;
         playerInput.onDash -= toDash;
+        playerInput.onInteract -= Interact;
     }
     // Start is called before the first frame update
     void Start()
@@ -79,6 +87,7 @@ public class NewPlayer : MonoBehaviour
     {
         // Position Maintainance
         onGround = Physics2D.OverlapCircle(groundCheck.position, .05f, ground) || Physics2D.OverlapCircle(groundCheck.position, .05f, platform);
+        onPlatform = !Physics2D.OverlapCircle(groundCheck.position, .05f, ground) && Physics2D.OverlapCircle(groundCheck.position, .05f, platform);
         canStealth = Physics2D.OverlapCircle(StealthCheck.position, .05f, StealthArea);
         // Animation
         Anim.SetFloat("SpeedY", RB.velocity.y);
@@ -102,11 +111,10 @@ public class NewPlayer : MonoBehaviour
                 // Animation
                 Anim.SetBool("Falling", true);
             }
-
+            // 如果从平台上走下，跳跃数-1
             if (jumpCount == maxJumpCount)
                 jumpCount -= 1;
         }
-
     }
 
     void FixedUpdate()
@@ -117,6 +125,39 @@ public class NewPlayer : MonoBehaviour
         }
         // Continue Moving
         RB.velocity = new Vector2(Hdirection * Speed, RB.velocity.y);
+    }
+
+    void OnTriggerEnter2D(Collider2D coll)
+    {
+        switch (coll.gameObject.tag)
+        {
+            case "Portal":
+                onDoor = true;
+                portal = coll.gameObject;
+                break;
+
+            case "Item":
+                onItem = true;
+                item = coll.gameObject;
+                break;
+        }
+    }
+
+    void OnTriggerExit2D(Collider2D coll)
+    {
+        switch (coll.gameObject.tag)
+        {
+            case "Portal":
+                onDoor = false;
+                portal = null;
+                break;
+
+            case "Item":
+                onItem = false;
+                item = null;
+                break;
+
+        }
     }
 
     void Move(Vector2 dir)
@@ -151,7 +192,7 @@ public class NewPlayer : MonoBehaviour
 
     void Jump()
     {
-        if(Vdirection < 0f)
+        if(Vdirection < 0f && onPlatform)
         {
             StartCoroutine(fallPlatform());
         }
@@ -214,5 +255,22 @@ public class NewPlayer : MonoBehaviour
             return;
         toStealth = !toStealth; // 点按切换
         // TODO
+    }
+
+    // HotKey:F
+    void Interact()
+    {
+        // Change Scene
+        if (onDoor)
+        {
+            portal.transform.GetComponent<Portal>().changeScene();
+        }
+
+        if (onItem)
+        {
+            // adding item to inventory through GamaManager
+            GameManager.Instance().AddItem(item.transform.GetComponent<PickUpItem>().getItem());
+            item.SetActive(false);// clear item on world
+        }
     }
 }

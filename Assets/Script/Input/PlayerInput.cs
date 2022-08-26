@@ -17,6 +17,8 @@ public class PlayerInput : ScriptableObject,PlayerControl.IGamePlayActions
     public event UnityAction onStopStealth;
 
     public event UnityAction onDash;
+
+    public event UnityAction onInteract;
     void OnEnable()
     {
         playerControl = new PlayerControl();
@@ -76,6 +78,15 @@ public class PlayerInput : ScriptableObject,PlayerControl.IGamePlayActions
         {
             if (onDash != null)
                 onDash.Invoke();
+        }
+    }
+
+    public void OnInteract(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            if (onInteract != null)
+                onInteract.Invoke();
         }
     }
 }

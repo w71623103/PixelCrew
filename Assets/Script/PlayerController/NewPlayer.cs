@@ -268,8 +268,9 @@ public class NewPlayer : MonoBehaviour
 
         if (onItem)
         {
-            item.transform.GetComponent<Item>().getItem();
-
+            // adding item to inventory through GamaManager
+            GameManager.Instance().AddItem(item.transform.GetComponent<PickUpItem>().getItem());
+            item.SetActive(false);// clear item on world
         }
     }
 }

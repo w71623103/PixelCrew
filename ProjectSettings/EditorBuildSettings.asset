@@ -15,4 +15,4 @@ EditorBuildSettings:
     path: Assets/TestPortal.unity
     guid: ebdfc3b725171fc4587a5b6d50b8d87d
   m_configObjects:
-    com.unity.input.settings: {fileID: 11400000, guid: 1b09aedf34cc7b04ba263cbf5987a317, type: 2}
+    com.unity.input.settings: {fileID: 11400000, guid: 1268246378df0844c8babfce9c9afe6c, type: 2}

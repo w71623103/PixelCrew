@@ -14,10 +14,12 @@ public class PlayerInput : ScriptableObject,PlayerControl.IGamePlayActions
     public event UnityAction onJump;
 
     public event UnityAction onStealth;
-    public event UnityAction onStopStealth;
+    //public event UnityAction onStopStealth;
 
     public event UnityAction onDash;
-
+    public event UnityAction StartShoot;
+    public event UnityAction EndShoot;
+    public event UnityAction onChargeShoot;
     public event UnityAction onInteract;
     void OnEnable()
     {
@@ -80,6 +82,26 @@ public class PlayerInput : ScriptableObject,PlayerControl.IGamePlayActions
                 onDash.Invoke();
         }
     }
+
+    public void OnShoot(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            if (StartShoot != null)
+                StartShoot.Invoke();
+        }
+
+    }
+
+    public void OnChargeShoot(InputAction.CallbackContext context)
+    {
+        if (context.phase == InputActionPhase.Performed)
+        {
+            if (onChargeShoot != null)
+                onChargeShoot.Invoke();
+        }
+    }
+
 
     public void OnInteract(InputAction.CallbackContext context)
     {

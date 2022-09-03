@@ -71,6 +71,24 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Shoot"",
+                    ""type"": ""Button"",
+                    ""id"": ""cc0b4bad-6c69-43b0-8d68-bf54fafcae63"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ChargeShoot"",
+                    ""type"": ""Button"",
+                    ""id"": ""457c9bb4-fb1a-414b-94ab-05e4d270f609"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -165,7 +183,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""d125c259-5317-49d2-acfc-d65b3b310dd3"",
-                    ""path"": ""<Keyboard>/leftShift"",
+                    ""path"": ""<Keyboard>/i"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -194,6 +212,28 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                     ""action"": ""Interact"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""64e95cfa-103c-4b7f-ab20-3aaebd2cac43"",
+                    ""path"": ""<Keyboard>/k"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Shoot"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""056a07fc-054c-4952-b29a-44347f2df355"",
+                    ""path"": ""<Keyboard>/k"",
+                    ""interactions"": ""Hold(duration=1,pressPoint=0.5)"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ChargeShoot"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -219,6 +259,8 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
         m_GamePlay_Stealth = m_GamePlay.FindAction("Stealth", throwIfNotFound: true);
         m_GamePlay_Dash = m_GamePlay.FindAction("Dash", throwIfNotFound: true);
         m_GamePlay_Interact = m_GamePlay.FindAction("Interact", throwIfNotFound: true);
+        m_GamePlay_Shoot = m_GamePlay.FindAction("Shoot", throwIfNotFound: true);
+        m_GamePlay_ChargeShoot = m_GamePlay.FindAction("ChargeShoot", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -283,6 +325,8 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
     private readonly InputAction m_GamePlay_Stealth;
     private readonly InputAction m_GamePlay_Dash;
     private readonly InputAction m_GamePlay_Interact;
+    private readonly InputAction m_GamePlay_Shoot;
+    private readonly InputAction m_GamePlay_ChargeShoot;
     public struct GamePlayActions
     {
         private @PlayerControl m_Wrapper;
@@ -292,6 +336,8 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
         public InputAction @Stealth => m_Wrapper.m_GamePlay_Stealth;
         public InputAction @Dash => m_Wrapper.m_GamePlay_Dash;
         public InputAction @Interact => m_Wrapper.m_GamePlay_Interact;
+        public InputAction @Shoot => m_Wrapper.m_GamePlay_Shoot;
+        public InputAction @ChargeShoot => m_Wrapper.m_GamePlay_ChargeShoot;
         public InputActionMap Get() { return m_Wrapper.m_GamePlay; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -316,6 +362,12 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                 @Interact.started -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnInteract;
                 @Interact.performed -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnInteract;
                 @Interact.canceled -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnInteract;
+                @Shoot.started -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnShoot;
+                @Shoot.performed -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnShoot;
+                @Shoot.canceled -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnShoot;
+                @ChargeShoot.started -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnChargeShoot;
+                @ChargeShoot.performed -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnChargeShoot;
+                @ChargeShoot.canceled -= m_Wrapper.m_GamePlayActionsCallbackInterface.OnChargeShoot;
             }
             m_Wrapper.m_GamePlayActionsCallbackInterface = instance;
             if (instance != null)
@@ -335,6 +387,12 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
                 @Interact.started += instance.OnInteract;
                 @Interact.performed += instance.OnInteract;
                 @Interact.canceled += instance.OnInteract;
+                @Shoot.started += instance.OnShoot;
+                @Shoot.performed += instance.OnShoot;
+                @Shoot.canceled += instance.OnShoot;
+                @ChargeShoot.started += instance.OnChargeShoot;
+                @ChargeShoot.performed += instance.OnChargeShoot;
+                @ChargeShoot.canceled += instance.OnChargeShoot;
             }
         }
     }
@@ -355,5 +413,7 @@ public partial class @PlayerControl : IInputActionCollection2, IDisposable
         void OnStealth(InputAction.CallbackContext context);
         void OnDash(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
+        void OnShoot(InputAction.CallbackContext context);
+        void OnChargeShoot(InputAction.CallbackContext context);
     }
 }

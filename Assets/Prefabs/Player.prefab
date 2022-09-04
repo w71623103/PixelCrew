@@ -284,9 +284,14 @@ MonoBehaviour:
   dashingTime: 0.1
   dashCooldown: 2
   dashTrail: {fileID: 0}
-  BulletTiles1: {fileID: 0}
+  canStealth: 0
+  StealthArea:
+    serializedVersion: 2
+    m_Bits: 0
+  StealthCheck: {fileID: 0}
+  fadeOutTime: 0.5
+  weapon: {fileID: 0}
   Firepoint: {fileID: 7994955330154222330}
-  ChargedBullet: {fileID: 0}
 --- !u!61 &7994955331327602539
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -339,6 +344,15 @@ MonoBehaviour:
     m_Type: 0
     m_ExpectedControlType: 
     m_Id: cdaa4997-7007-4e88-91bc-12e86be2c931
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  chargeShoot:
+    m_Name: 
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: 3ae67b16-7beb-4b2c-9b5b-d3518bae90f8
     m_Processors: 
     m_Interactions: 
     m_SingletonActionBindings: []

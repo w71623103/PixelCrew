@@ -17,10 +17,12 @@ public class PlayerInput : ScriptableObject,PlayerControl.IGamePlayActions
     //public event UnityAction onStopStealth;
 
     public event UnityAction onDash;
-    public event UnityAction StartShoot;
-    public event UnityAction EndShoot;
-    public event UnityAction onChargeShoot;
+
     public event UnityAction onInteract;
+
+    public event UnityAction onPullGunTrigger;
+
+    public event UnityAction onReleaseGunTrigger;
     void OnEnable()
     {
         playerControl = new PlayerControl();
@@ -83,25 +85,20 @@ public class PlayerInput : ScriptableObject,PlayerControl.IGamePlayActions
         }
     }
 
-    public void OnShoot(InputAction.CallbackContext context)
+    public void OnPullGunTrigger(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Performed)
         {
-            if (StartShoot != null)
-                StartShoot.Invoke();
+            if (onPullGunTrigger != null)
+                onPullGunTrigger.Invoke();
         }
-
-    }
-
-    public void OnChargeShoot(InputAction.CallbackContext context)
-    {
-        if (context.phase == InputActionPhase.Performed)
+        if (context.phase == InputActionPhase.Canceled)
         {
-            if (onChargeShoot != null)
-                onChargeShoot.Invoke();
+            if (onReleaseGunTrigger != null)
+                onReleaseGunTrigger.Invoke();
         }
-    }
 
+    }
 
     public void OnInteract(InputAction.CallbackContext context)
     {

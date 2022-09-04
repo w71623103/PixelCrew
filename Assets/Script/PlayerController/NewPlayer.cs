@@ -49,6 +49,8 @@ public class NewPlayer : MonoBehaviour
     private GameObject portal;
     private bool onItem;
     private GameObject item;
+    private bool onNPC;
+    private GameObject npc;
 
     [Header("Stealth")]
     [SerializeField] private bool canStealth; // 判断是否在潜行区域内
@@ -182,6 +184,11 @@ public class NewPlayer : MonoBehaviour
                 onItem = true;
                 item = coll.gameObject;
                 break;
+
+            case "NPC":
+                onNPC = true;
+                npc = coll.gameObject;
+                break;
         }
     }
 
@@ -199,6 +206,10 @@ public class NewPlayer : MonoBehaviour
                 item = null;
                 break;
 
+            case "NPC":
+                onNPC = false;
+                npc.transform.GetComponent<DialogSign>().HideSign();
+                break;
         }
     }
 
@@ -308,6 +319,12 @@ public class NewPlayer : MonoBehaviour
             // adding item to inventory through GamaManager
             GameManager.Instance().AddItem(item.transform.GetComponent<PickUpItem>().getItem());
             item.SetActive(false);// clear item on world
+        }
+
+        if (onNPC)
+        {
+            // Sign Dialog
+            npc.transform.GetComponent<DialogSign>().DisplaySign();
         }
     }
 

@@ -104,11 +104,11 @@ GameObject:
   - component: {fileID: 7994955331327602519}
   - component: {fileID: 7994955331327602516}
   - component: {fileID: 7994955331327602515}
-  - component: {fileID: 7994955331327602514}
   - component: {fileID: 7994955331327602518}
   - component: {fileID: 7994955331327602536}
   - component: {fileID: 7994955331327602537}
   - component: {fileID: 7994955331327602539}
+  - component: {fileID: 6546848948343082182}
   m_Layer: 11
   m_Name: Player
   m_TagString: Player
@@ -207,25 +207,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
---- !u!114 &7994955331327602514
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7994955331327602517}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f5b053c7e222c24e8535e2e572880a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Firepoint: {fileID: 7994955330154222330}
-  ProjectilePrefab: {fileID: 8544619990196417347, guid: ffc3216ea11160e4eb72abfaea046a0a, type: 3}
-  target: {fileID: 0}
-  startPos: {x: 0, y: 0}
-  endPos: {x: 0, y: 0}
-  midPos: {x: 0, y: 0}
-  normalizedSpeed: 0
 --- !u!50 &7994955331327602518
 Rigidbody2D:
   serializedVersion: 4
@@ -286,29 +267,26 @@ MonoBehaviour:
     m_Bits: 256
   groundCheck: {fileID: 7994955330589242590}
   onGround: 0
-  runSpeed: 5
+  onPlatform: 0
   Speed: 5
   Hdirection: 0
   Vdirection: 0
   MoveVector: {x: 0, y: 0}
+  SpeedChange: 0
   jumpForce: 10
   jumpCount: 0
   maxJumpCount: 2
   fallMultiplier: 3
   fallTime: 0.1
-  stealthSpeed: 2
-  toStealth: 0
-  canStealth: 0
-  StealthArea:
-    serializedVersion: 2
-    m_Bits: 512
-  StealthCheck: {fileID: 7994955332128620942}
   canDash: 1
   isDashing: 0
   dashingPower: 20
   dashingTime: 0.1
   dashCooldown: 2
   dashTrail: {fileID: 0}
+  BulletTiles1: {fileID: 0}
+  Firepoint: {fileID: 7994955330154222330}
+  ChargedBullet: {fileID: 0}
 --- !u!61 &7994955331327602539
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -335,6 +313,46 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.52359915, y: 0.09677482}
   m_EdgeRadius: 0
+--- !u!114 &6546848948343082182
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7994955331327602517}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 597b312d5de43cb4dac3716886d498a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stealth:
+    m_Name: Stealth
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: ae791163-1058-4247-8b43-c2003750e950
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  shoot:
+    m_Name: Shoot
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: cdaa4997-7007-4e88-91bc-12e86be2c931
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings: []
+    m_Flags: 0
+  player: {fileID: 7994955331327602517}
+  canStealth: 0
+  StealthArea:
+    serializedVersion: 2
+    m_Bits: 512
+  StealthCheck: {fileID: 7994955332128620942}
+  fadeOutTime: 0.5
+  BulletTiles1: {fileID: 0}
+  Firepoint: {fileID: 7994955330154222330}
+  ChargedBullet: {fileID: 0}
 --- !u!1 &7994955332128620943
 GameObject:
   m_ObjectHideFlags: 0

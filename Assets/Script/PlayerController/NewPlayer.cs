@@ -16,12 +16,13 @@ public class NewPlayer : MonoBehaviour
     [SerializeField] private bool onPlatform;
 
     [Header("Move")]
-    [SerializeField] private float Speed = 5f;
+    public float Speed = 5f;
     [SerializeField] private float Hdirection;
     [SerializeField] private float Vdirection;
     [SerializeField] private Vector2 MoveVector;
     private bool faceRight = true;
     private bool faceNow;
+    public float SpeedChange;
 
     [Header("Jump")]
     [SerializeField] private float jumpForce = 10f;
@@ -33,13 +34,6 @@ public class NewPlayer : MonoBehaviour
     [SerializeField] private float fallTime;
     private int normalLayer = 11;
     private int fallLayer = 12;
-
-    [Header("Stealth")]
-    [SerializeField] private float stealthSpeed = 2f;
-    [SerializeField] private bool toStealth = false; // 按键来翻转它，控制是否进入潜行状态
-    [SerializeField] private bool canStealth; // 判断是否在潜行区域内
-    public LayerMask StealthArea;
-    public Transform StealthCheck;
 
     [Header("Dash")]
     [SerializeField] private bool canDash = true; // 是否可以冲刺
@@ -56,6 +50,14 @@ public class NewPlayer : MonoBehaviour
     private bool onItem;
     private GameObject item;
 
+    [Header("Stealth")]
+    [SerializeField] private bool canStealth; // 判断是否在潜行区域内
+    public LayerMask StealthArea;
+    public Transform StealthCheck;
+    private SpriteRenderer rend;
+    public float fadeOutTime = 0.5f;
+    private bool toStealth = false;
+
     // Setting InputMap to Gameplay Map
     // to make sure that the methods below are conducted;
     void OnEnable()
@@ -65,6 +67,8 @@ public class NewPlayer : MonoBehaviour
         playerInput.onJump += Jump;
         playerInput.onStealth += Stealth;
         playerInput.onDash += toDash;
+        //playerInput.StartShoot += ShootStart;
+        //playerInput.EndShoot += ShootEnd;
         playerInput.onInteract += Interact;
     }
     void OnDisable()
@@ -75,12 +79,16 @@ public class NewPlayer : MonoBehaviour
         playerInput.onStealth -= Stealth;
         playerInput.onDash -= toDash;
         playerInput.onInteract -= Interact;
+        //playerInput.StartShoot -= ShootStart;
+        //playerInput.EndShoot -= ShootEnd;
     }
     // Start is called before the first frame update
     void Start()
     {
         RB = GetComponent<Rigidbody2D>();
+        rend = GetComponent<SpriteRenderer>();
         playerInput.EnableGameplayInput();
+       
     }
 
     void Update()
@@ -88,7 +96,9 @@ public class NewPlayer : MonoBehaviour
         // Position Maintainance
         onGround = Physics2D.OverlapCircle(groundCheck.position, .05f, ground) || Physics2D.OverlapCircle(groundCheck.position, .05f, platform);
         onPlatform = !Physics2D.OverlapCircle(groundCheck.position, .05f, ground) && Physics2D.OverlapCircle(groundCheck.position, .05f, platform);
-        canStealth = Physics2D.OverlapCircle(StealthCheck.position, .05f, StealthArea);
+       
+        // Start shooting time counting
+        //Timer();
         // Animation
         Anim.SetFloat("SpeedY", RB.velocity.y);
         Anim.SetBool("onGround", onGround);
@@ -115,6 +125,30 @@ public class NewPlayer : MonoBehaviour
             if (jumpCount == maxJumpCount)
                 jumpCount -= 1;
         }
+
+        // stealthing
+        canStealth = Physics2D.OverlapCircle(StealthCheck.position, .05f, StealthArea);
+
+        if (!canStealth)
+        {
+            toStealth = false;
+        }
+
+        if (canStealth)
+        {
+            if (toStealth)
+            {
+                Stealthing();
+            }
+            else
+            {
+                OutStealth();
+            }
+        }
+        else
+        {
+            OutStealth();
+        }
     }
 
     void FixedUpdate()
@@ -123,6 +157,7 @@ public class NewPlayer : MonoBehaviour
         {
             return;
         }
+        
         // Continue Moving
         RB.velocity = new Vector2(Hdirection * Speed, RB.velocity.y);
     }
@@ -247,15 +282,9 @@ public class NewPlayer : MonoBehaviour
         yield return new WaitForSeconds(dashCooldown);
         canDash = true;
     }
+ 
+ 
 
-
-    void Stealth()
-    {
-        if (!onGround || !canStealth)
-            return;
-        toStealth = !toStealth; // 点按切换
-        // TODO
-    }
 
     // HotKey:F
     void Interact()
@@ -272,5 +301,59 @@ public class NewPlayer : MonoBehaviour
             GameManager.Instance().AddItem(item.transform.GetComponent<PickUpItem>().getItem());
             item.SetActive(false);// clear item on world
         }
+    }
+
+    // Contents below are Stealth
+    // Authur:黄栋丞
+    // Reviewer:吴少杰
+
+
+    IEnumerator FadeOut(SpriteRenderer _sprite) //change the transparency
+    {
+        Color tmpColor = _sprite.color;
+        while (tmpColor.a > 0.3f)
+        {
+            tmpColor.a -= 1f * Time.deltaTime / fadeOutTime;
+
+            _sprite.color = tmpColor;
+            if (tmpColor.a <= 0.3f)
+            {
+                tmpColor.a = 0.3f;
+            }
+            yield return null;
+        }
+        _sprite.color = tmpColor;
+
+    }
+
+    IEnumerator BacktoPlayer(SpriteRenderer _sprite) //change the transparency from 0.3 to 1
+    {
+        Color tmpColor = _sprite.color;
+        tmpColor.a = 1f;
+        yield return null;
+
+        _sprite.color = tmpColor;
+
+    }
+
+    void Stealth()
+    {
+        toStealth = !toStealth;
+    }
+
+    void Stealthing()
+    {
+
+        StartCoroutine(FadeOut(GetComponent<SpriteRenderer>()));
+        Speed = 2f;
+        Physics2D.IgnoreLayerCollision(11, 13, true); // 11 means the layer number of player, 13 means that of enemy
+    }
+
+    void OutStealth()
+    {
+        StartCoroutine(BacktoPlayer(GetComponent<SpriteRenderer>()));
+        Speed = 5f;
+        Physics2D.IgnoreLayerCollision(11, 13, false);
+
     }
 }

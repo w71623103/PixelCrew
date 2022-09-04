@@ -49,6 +49,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Shoot",
+                    "type": "Button",
+                    "id": "cc0b4bad-6c69-43b0-8d68-bf54fafcae63",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ChargeShoot",
+                    "type": "Button",
+                    "id": "457c9bb4-fb1a-414b-94ab-05e4d270f609",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -143,7 +161,7 @@
                 {
                     "name": "",
                     "id": "d125c259-5317-49d2-acfc-d65b3b310dd3",
-                    "path": "<Keyboard>/leftShift",
+                    "path": "<Keyboard>/i",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -170,6 +188,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "64e95cfa-103c-4b7f-ab20-3aaebd2cac43",
+                    "path": "<Keyboard>/k",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Shoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "056a07fc-054c-4952-b29a-44347f2df355",
+                    "path": "<Keyboard>/k",
+                    "interactions": "Hold(duration=1,pressPoint=0.5)",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ChargeShoot",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

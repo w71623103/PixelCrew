@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43c9e6bb6c4cfd349a97c06428c65afb, type: 3}
-  m_Name: Gold Coin
+  m_Name: Sword
   m_EditorClassIdentifier: 
-  itemName: Gold Coin
-  itemDescription: A shiny Gold Coin
-  itemSprite: {fileID: -461409605, guid: 0b051a8914b648342ac34234c238b594, type: 3}
+  itemName: Sword
+  itemDescription: It's a sword
+  itemSprite: {fileID: 0}

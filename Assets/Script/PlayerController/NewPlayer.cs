@@ -16,7 +16,9 @@ public class NewPlayer : MonoBehaviour
     [SerializeField] private bool onPlatform;
 
     [Header("Move")]
-    public float Speed = 5f;
+    public float Speed;
+    [SerializeField] private float RunSpeed = 5f;
+    [SerializeField] private float StealthSpeed = 2f;
     [SerializeField] private float Hdirection;
     [SerializeField] private float Vdirection;
     [SerializeField] private Vector2 MoveVector;
@@ -95,6 +97,7 @@ public class NewPlayer : MonoBehaviour
         rend = GetComponent<SpriteRenderer>();
         weapon = GetComponent<Weapon>();
         playerInput.EnableGameplayInput();
+        Speed = RunSpeed;
     }
 
     void Update()
@@ -107,6 +110,7 @@ public class NewPlayer : MonoBehaviour
         //Timer();
         // Animation
         Anim.SetFloat("SpeedY", RB.velocity.y);
+        Anim.SetFloat("Speed", Mathf.Abs(RB.velocity.x / RunSpeed));
         Anim.SetBool("onGround", onGround);
 
         // Setting states
@@ -218,7 +222,7 @@ public class NewPlayer : MonoBehaviour
         Hdirection = dir.x;
         Vdirection = dir.y;
         // Animation
-        Anim.SetFloat("Speed", Mathf.Abs(Hdirection)); // Remember for walking
+        // Anim.SetFloat("Speed", Mathf.Abs(Hdirection)); // Remember for walking
         Anim.SetBool("Movement", Hdirection != 0f);
 
         if(RB.velocity.y < 0)
@@ -370,14 +374,14 @@ public class NewPlayer : MonoBehaviour
     {
 
         StartCoroutine(FadeOut(GetComponent<SpriteRenderer>()));
-        Speed = 2f;
+        Speed = StealthSpeed;
         Physics2D.IgnoreLayerCollision(11, 13, true); // 11 means the layer number of player, 13 means that of enemy
     }
 
     void OutStealth()
     {
         StartCoroutine(BacktoPlayer(GetComponent<SpriteRenderer>()));
-        Speed = 5f;
+        Speed = RunSpeed;
         Physics2D.IgnoreLayerCollision(11, 13, false);
 
     }

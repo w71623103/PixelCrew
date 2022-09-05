@@ -48,3 +48,21 @@ TagManager:
   - name: front
     uniqueID: 2621449869
     locked: 0
+  - name: Background
+    uniqueID: 418963561
+    locked: 0
+  - name: Front1
+    uniqueID: 3015500011
+    locked: 0
+  - name: Front2
+    uniqueID: 1816286537
+    locked: 0
+  - name: Foreground
+    uniqueID: 1569793277
+    locked: 0
+  - name: Front3
+    uniqueID: 2694580835
+    locked: 0
+  - name: Front4
+    uniqueID: 813142015
+    locked: 0

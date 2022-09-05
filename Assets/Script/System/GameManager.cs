@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour
     {
         foreach(var item in itemDic.Keys)
         {
-            Debug.Log("Now Got " + itemDic[item] + item.itemName);
+            Debug.Log("Now Got " + itemDic[item] +" "+ item.itemName);
         }
     }
 
@@ -48,7 +48,6 @@ public class GameManager : MonoBehaviour
         {
             itemDic[item]++;
         }
-
         // display for debug
         DisplayItems();
     }

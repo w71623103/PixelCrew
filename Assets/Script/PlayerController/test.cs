@@ -139,7 +139,7 @@ public class test : MonoBehaviour
     }
 
 
-    public void Shoot(InputAction.CallbackContext value)
+/*    public void Shoot(InputAction.CallbackContext value)
     {
         if (canShoot)
         {
@@ -162,7 +162,7 @@ public class test : MonoBehaviour
  
         
     }
-
+*/
 
 
 
@@ -175,13 +175,13 @@ public class test : MonoBehaviour
         stealth.Enable();
         stealth.performed += Stealth;
 
-        shoot = playerControls.GamePlay.Shoot;
+ /*       shoot = playerControls.GamePlay.Shoot;
         shoot.Enable();
         shoot.performed += Shoot;
 
         chargeShoot = playerControls.GamePlay.ChargeShoot;
         chargeShoot.Enable();
-        chargeShoot.performed += ChargeShoot;
+        chargeShoot.performed += ChargeShoot;*/
     }
 
     public void OnDisable()

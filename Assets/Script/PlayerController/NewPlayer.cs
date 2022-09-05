@@ -49,6 +49,8 @@ public class NewPlayer : MonoBehaviour
     private GameObject portal;
     private bool onItem;
     private GameObject item;
+    private bool onNPC;
+    private GameObject npc;
 
     [Header("Stealth")]
     [SerializeField] private bool canStealth; // 判断是否在潜行区域内
@@ -58,6 +60,10 @@ public class NewPlayer : MonoBehaviour
     public float fadeOutTime = 0.5f;
     private bool toStealth = false;
 
+    [Header("Weapon")]
+    [SerializeField] private Weapon weapon;
+    private bool canShoot;
+    [SerializeField] private Transform Firepoint;
     // Setting InputMap to Gameplay Map
     // to make sure that the methods below are conducted;
     void OnEnable()
@@ -67,9 +73,9 @@ public class NewPlayer : MonoBehaviour
         playerInput.onJump += Jump;
         playerInput.onStealth += Stealth;
         playerInput.onDash += toDash;
-        //playerInput.StartShoot += ShootStart;
-        //playerInput.EndShoot += ShootEnd;
         playerInput.onInteract += Interact;
+        playerInput.onPullGunTrigger += PullGunTrigger;
+        playerInput.onReleaseGunTrigger += ReleaseGunTrigger;
     }
     void OnDisable()
     {
@@ -79,16 +85,16 @@ public class NewPlayer : MonoBehaviour
         playerInput.onStealth -= Stealth;
         playerInput.onDash -= toDash;
         playerInput.onInteract -= Interact;
-        //playerInput.StartShoot -= ShootStart;
-        //playerInput.EndShoot -= ShootEnd;
+        playerInput.onPullGunTrigger -= PullGunTrigger;
+        playerInput.onReleaseGunTrigger -= ReleaseGunTrigger;
     }
     // Start is called before the first frame update
     void Start()
     {
         RB = GetComponent<Rigidbody2D>();
         rend = GetComponent<SpriteRenderer>();
+        weapon = GetComponent<Weapon>();
         playerInput.EnableGameplayInput();
-       
     }
 
     void Update()
@@ -139,15 +145,18 @@ public class NewPlayer : MonoBehaviour
             if (toStealth)
             {
                 Stealthing();
+                canShoot = false;
             }
             else
             {
                 OutStealth();
+                canShoot = true;
             }
         }
         else
         {
             OutStealth();
+            canShoot = true;
         }
     }
 
@@ -175,6 +184,11 @@ public class NewPlayer : MonoBehaviour
                 onItem = true;
                 item = coll.gameObject;
                 break;
+
+            case "NPC":
+                onNPC = true;
+                npc = coll.gameObject;
+                break;
         }
     }
 
@@ -192,6 +206,10 @@ public class NewPlayer : MonoBehaviour
                 item = null;
                 break;
 
+            case "NPC":
+                onNPC = false;
+                npc.transform.GetComponent<DialogSign>().HideSign();
+                break;
         }
     }
 
@@ -214,7 +232,8 @@ public class NewPlayer : MonoBehaviour
         // Record NowFacing
         faceRight = !faceRight;
         // Core Function
-        transform.Rotate(0f, 180f, 0f);
+        Firepoint.Rotate(0f, 180f, 0f);
+        transform.localScale = new Vector3(faceRight ? 1 : -1 , 1 , 1);
     }
 
     void StopMove()
@@ -301,6 +320,12 @@ public class NewPlayer : MonoBehaviour
             GameManager.Instance().AddItem(item.transform.GetComponent<PickUpItem>().getItem());
             item.SetActive(false);// clear item on world
         }
+
+        if (onNPC)
+        {
+            // Sign Dialog
+            npc.transform.GetComponent<DialogSign>().DisplaySign();
+        }
     }
 
     // Contents below are Stealth
@@ -355,5 +380,22 @@ public class NewPlayer : MonoBehaviour
         Speed = 5f;
         Physics2D.IgnoreLayerCollision(11, 13, false);
 
+    }
+
+    // Gun
+    void PullGunTrigger()
+    {
+        if (canShoot)
+        {
+            weapon.PullTrigger();
+        }
+    }
+
+    void ReleaseGunTrigger()
+    {
+        if (canShoot)
+        {
+            weapon.ReleaseTrigger();
+        }
     }
 }

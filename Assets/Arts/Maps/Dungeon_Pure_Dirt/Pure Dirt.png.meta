@@ -544,6 +544,195 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_21
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 1248
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 54d235bbfa4707044937ba8a9666e2d5
+      internalID: -1293882829
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_22
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 1248
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9fcc882c34a750e4ab0551d607480a1e
+      internalID: -1439982604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_23
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 1248
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7fcd9236fec072d409807e542fbeb7a2
+      internalID: 698786246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_24
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 1216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e69d32d149a2d8d498e0c96a1a0db8fe
+      internalID: -1243220650
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_25
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 1216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bb8d71ad5ae6edc40860c9b48843756e
+      internalID: -1397629086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_26
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 1216
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6193736129d620f44a5d25df7a1e17b7
+      internalID: 1578914559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_27
+      rect:
+        serializedVersion: 2
+        x: 320
+        y: 1152
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7c63173c89481194b914dcc6ba9f0102
+      internalID: -1576354393
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_28
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 1152
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d185a04d54f88274a93387c3ca1d8994
+      internalID: 856088242
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pure Dirt_29
+      rect:
+        serializedVersion: 2
+        x: 384
+        y: 1152
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e6b37b6172d5f09448e1c63cfae97ae0
+      internalID: -1352739702
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     physicsShape: []
     bones: []
@@ -555,14 +744,17 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Pure Dirt_20: -1067982504
+      Pure Dirt_26: 1578914559
       Pure Dirt_2: -1416217383
       Pure Dirt_18: 6036493
       Pure Dirt_16: -708562077
       Pure Dirt_14: -1710065591
       Pure Dirt_0: -1712779105
       Pure Dirt_17: -53120360
+      Pure Dirt_25: -1397629086
+      Pure Dirt_27: -1576354393
       Pure Dirt_11: -1961572497
+      Pure Dirt_29: -1352739702
       Pure Dirt_1: 1311362259
       Pure Dirt_13: -1644934332
       Pure Dirt_4: 457223571
@@ -570,12 +762,18 @@ TextureImporter:
       Pure Dirt_8: -1949282198
       Pure Dirt_3: 992845529
       Pure Dirt_10: -74036311
+      Pure Dirt_21: -1293882829
       Pure Dirt_9: 1426564403
       Pure Dirt_7: -1604717235
+      Pure Dirt_28: 856088242
+      Pure Dirt_22: -1439982604
+      Pure Dirt_24: -1243220650
       Pure Dirt_19: -601481778
+      Pure Dirt_23: 698786246
+      Pure Dirt_15: -201986270
       Pure Dirt_12: 1783391448
       Pure Dirt_5: 1272894168
-      Pure Dirt_15: -201986270
+      Pure Dirt_20: -1067982504
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

@@ -7,8 +7,10 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance;
 
-    [SerializeField] public Dictionary<Item,int> itemDic = new Dictionary<Item,int>();
-
+    public Dictionary<Item,int> itemDic = new Dictionary<Item,int>();
+    // 这里保存了一次游戏中拿到的所有物品 Item对应它的数目
+    public int LifePoint = 3;
+    // 生命值 ，预计死亡系统将写在GameManager里
     public static GameManager Instance()
     {
         if (instance == null)
@@ -24,31 +26,30 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(this);
     }
     
-    void Start()
-    {
-        Debug.Log("HELLO");
-    }
-    private void DisplayItems()
-    {
-        foreach(var item in itemDic.Keys)
-        {
-            Debug.Log("Now Got " + itemDic[item] +" "+ item.itemName);
-        }
-    }
-
     public void AddItem(Item item)
     {
         // if item is a NEW item,then add it to the dic
         if (!itemDic.ContainsKey(item))
         {
             itemDic.Add(item, 1);
+            InventoryManager.addNewItem(item);
         }
         // else add the count of item
         else
         {
             itemDic[item]++;
         }
-        // display for debug
-        DisplayItems();
+        // display fresh
+        InventoryManager.refreshItem();
+    }
+
+    public string getItemAmount(Item item)
+    {
+        int amount = 0;
+        if (itemDic.ContainsKey(item))
+        {
+            amount = itemDic[item];
+        }
+        return amount.ToString();
     }
 }

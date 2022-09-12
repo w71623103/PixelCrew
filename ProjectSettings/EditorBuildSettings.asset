@@ -17,5 +17,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Testportal1.unity
     guid: a5f9c4a1aad87214790958dba2cf1d46
+  - enabled: 1
+    path: Assets/Scenes/Tilemap Template.unity
+    guid: d3556f23fb41d8d46806e0c170854f86
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 1268246378df0844c8babfce9c9afe6c, type: 2}

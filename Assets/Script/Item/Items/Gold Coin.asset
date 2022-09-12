@@ -15,3 +15,4 @@ MonoBehaviour:
   itemName: Gold Coin
   itemDescription: A shiny Gold Coin
   itemSprite: {fileID: -461409605, guid: 0b051a8914b648342ac34234c238b594, type: 3}
+  isEpic: 1

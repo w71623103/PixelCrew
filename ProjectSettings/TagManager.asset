@@ -45,11 +45,14 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: front
-    uniqueID: 2621449869
+  - name: BG
+    uniqueID: 3914067935
     locked: 0
   - name: Background
     uniqueID: 418963561
+    locked: 0
+  - name: front
+    uniqueID: 2621449869
     locked: 0
   - name: Front1
     uniqueID: 3015500011
